@@ -1,4 +1,4 @@
-package game
+package jellies.game
 
 final case class LevelSpecification(
     initialState: State,

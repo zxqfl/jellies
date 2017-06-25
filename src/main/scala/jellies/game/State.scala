@@ -1,4 +1,4 @@
-package game
+package jellies.game
 
 import scala.collection.immutable
 import scala.collection.mutable

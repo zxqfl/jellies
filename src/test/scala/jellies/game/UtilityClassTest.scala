@@ -1,4 +1,4 @@
-package game
+package jellies.game
 
 import org.scalatest._
 import scala.util.control.NonFatal

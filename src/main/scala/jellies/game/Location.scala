@@ -1,4 +1,4 @@
-package game
+package jellies.game
 
 final case class Location private[game] (
     x: Int,
@@ -8,5 +8,5 @@ final case class Location private[game] (
       Location(x+1, y),
       Location(x, y-1),
       Location(x, y+1))
-  private[game] def translate(d: Direction) = Location(x + d.dx, y + d.dy)
+  def translate(d: Direction) = Location(x + d.dx, y + d.dy)
 }

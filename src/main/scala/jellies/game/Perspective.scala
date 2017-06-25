@@ -1,4 +1,4 @@
-package game
+package jellies.game
 
 final case class Perspective(down: Direction) {
   val left = down.rotate90DegreesClockwise

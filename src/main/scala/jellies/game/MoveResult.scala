@@ -1,4 +1,4 @@
-package game
+package jellies.game
  
 sealed trait MoveResult {
   val initialState: State

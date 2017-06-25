@@ -1,4 +1,4 @@
-package game
+package jellies.game
 
 final case class Direction(dx: Int, dy: Int) {
   require(Math.abs(dx) + Math.abs(dy) == 1)

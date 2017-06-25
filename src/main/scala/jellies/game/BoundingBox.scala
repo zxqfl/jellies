@@ -1,4 +1,4 @@
-package game
+package jellies.game
 
 final class BoundingBox private (
     val left: Int,
@@ -16,5 +16,12 @@ final class BoundingBox private (
   def expand(x: Int) = {
     require(x >= 0)
     new BoundingBox(left - x, right + x, bottom - x, top + x)
+  }
+  
+  def allTiles: Iterator[Location] = {
+    for {
+      y <- (bottom to top).toIterator
+      x <- left to right
+    } yield Location(x, y)
   }
 }
