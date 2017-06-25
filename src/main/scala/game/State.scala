@@ -9,8 +9,8 @@ sealed trait JellyColour {
 final case class MergeableColour(identifier: Int) extends JellyColour {
   def mergesWith(other: JellyColour): Boolean = (other == this)
 }
-case object UnmergeableColour extends JellyColour {
-  def mergesWith(other: JellyColour) = false
+final case class UnmergeableColour(identifier: Int) extends JellyColour {
+  def mergesWith(other: JellyColour): Boolean = (other == this)
 }
 
 private[game] sealed trait RawTile
@@ -19,7 +19,7 @@ private[game] final case class JellyPart(colour: JellyColour) extends RawTile
 private[game] final case object RawOpenSpace extends RawTile
 
 final class State private (
-    private val objects: immutable.Map[Location, RawTile]) {
+    private[game] val objects: immutable.Map[Location, RawTile]) {
   
   override def equals(o: Any) =
     o.isInstanceOf[State] && o.asInstanceOf[State].objects == objects
@@ -96,7 +96,7 @@ final class State private (
   
   def hasPermission(jelly: JellyRef, perspective: Perspective): Boolean = {
     val field = new PhysicsField
-    field.unaffectedByGravity(perspective) contains jelly
+    field.findPermittedJellies(perspective) contains jelly
   }
   
   private def checkPermission(m: Move): Either[MoveFailureReason, Unit] = {
@@ -124,7 +124,7 @@ final class State private (
     val effects = field.applyMove(m)
     val resultingState = new State(field.extractRawTiles)
     val refMap = field.remapJellies(resultingState)
-    MoveResult(effects, resultingState)(refMap)
+    MoveResult(this, resultingState)(effects, refMap)
   }
       
   def applyMove(m: Move): Either[MoveFailureReason, MoveResult] = {
@@ -149,24 +149,6 @@ final class State private (
   final case class JellyMove(
       jelliesAffected: Set[JellyRef],
       direction: Direction) extends MoveEffect
-  
-  sealed trait MoveResult {
-    val effects: Seq[MoveEffect]
-    val resultingState: State
-    val refMap: Map[JellyRef, resultingState.JellyRef]
-  }
-  private object MoveResult {
-    def apply(
-        e: Seq[MoveEffect],
-        rs: State)(
-        rm: Map[JellyRef, rs.JellyRef]) = {
-      new MoveResult {
-        val effects = e
-        val resultingState: rs.type = rs
-        val refMap = rm
-      }
-    }
-  }
   
   // Mutable.
   private class PhysicsField {
@@ -341,7 +323,7 @@ final class State private (
     private def remainingJellies: Set[JellyRef] =
       jellies.toSet.map(representative)
     
-    def unaffectedByGravity(perspective: Perspective): Set[JellyRef] = {
+    def findPermittedJellies(perspective: Perspective): Set[JellyRef] = {
       def helper(
           candidates: Set[JellyRef],
           members: Set[JellyRef]): Set[JellyRef] = {
@@ -407,9 +389,10 @@ final class State private (
     }
     
     def applyMove(m: Move): Seq[MoveEffect] = {
-      val supported = supportedBy(
-          Set(m.jelly),
-          m.perspective)
+//      val supported = supportedBy(
+//          Set(m.jelly),
+//          m.perspective)
+      val supported = findPermittedJellies(m.perspective)
       val initialEffect = applyHorizontalMove(
           Set(m.jelly),
           m.desiredDirection,
@@ -419,7 +402,7 @@ final class State private (
       while (!fallSet.isEmpty) {
         result ++= applyGravity(fallSet, m.perspective)
         result ++= mergeWherePossible()
-        val unaffected = unaffectedByGravity(m.perspective)
+        val unaffected = findPermittedJellies(m.perspective)
         fallSet = fallSet map representative
         fallSet = updateFallSet(fallSet, unaffected, m.perspective)
       }
@@ -487,6 +470,8 @@ object State {
             assert(digit.length == 1)
             digit(0)
           }
+          case state.JellyRef(_, UnmergeableColour(_)) => ???
+          case state.Wall => throw new AssertionError
         }
       }
     }

@@ -54,7 +54,7 @@ private class SimpleStateTest extends FunSuite with Matchers {
         readerPerspective.left,
         readerPerspective)
     val resultContainer = state.applyMove(move)
-    resultContainer shouldBe a[Right[_, state.MoveResult]]
+    resultContainer shouldBe a[Right[_, MoveResult]]
     val result = resultContainer.toOption.get
     val newState = result.resultingState
     newState shouldEqual State.fromASCIIArt(
@@ -75,7 +75,7 @@ private class SimpleStateTest extends FunSuite with Matchers {
         readerPerspective.right,
         readerPerspective)
     val resultContainer = state.applyMove(move)
-    resultContainer shouldBe a[Right[_, state.MoveResult]]
+    resultContainer shouldBe a[Right[_, MoveResult]]
     val result = resultContainer.toOption.get
     val newState = result.resultingState
     newState shouldEqual State.fromASCIIArt(
@@ -98,7 +98,7 @@ private class SimpleStateTest extends FunSuite with Matchers {
         readerPerspective.right,
         readerPerspective)
     val resultContainer = state.applyMove(move)
-    resultContainer shouldBe a[Right[_, state.MoveResult]]
+    resultContainer shouldBe a[Right[_, MoveResult]]
     val result = resultContainer.toOption.get
     val newState = result.resultingState
     newState shouldEqual State.fromASCIIArt(
