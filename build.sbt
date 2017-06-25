@@ -1,5 +1,5 @@
 name := "jellies"
-// scalaVersion in ThisBuild := "2.12.2"
+scalaVersion in ThisBuild := "2.12.0"
 
 lazy val commonSettings = Seq(
 	name := "jellies",
@@ -13,8 +13,7 @@ lazy val commonSettings = Seq(
 lazy val projJVM = project.in(file(".")).
 	settings(
 		EclipseKeys.skipProject := true,
-		isScalaJSProject := false,
-		scalaVersion := "2.12.0"
+		isScalaJSProject := false
 	).
 	settings(commonSettings: _*)
 
@@ -24,6 +23,5 @@ lazy val projJS = project.in(file(".")).
 	settings(
 		unmanagedSourceDirectories in Compile += baseDirectory.value / "js/src/main/scala",
 		unmanagedResourceDirectories in Compile += baseDirectory.value / "js/src/main/resources",
-		libraryDependencies += "org.scala-js" %%% "scalajs-dom" % "0.9.1",
-		scalaVersion := "2.12.0"
+		libraryDependencies += "org.scala-js" %%% "scalajs-dom" % "0.9.1"
 	)

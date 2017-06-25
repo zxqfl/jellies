@@ -47,6 +47,13 @@ final class Model(val levelSpecification: LevelSpecification) {
   
   def clearRedo(): Unit = (redoStack = Nil)
   
+  def restart(): Unit = {
+    while (canUndo) {
+      undo()
+    }
+    clearRedo()
+  }
+  
   private def modifyState(s: State): Unit =
     (currentStateStack +:= WrappedState(s))
   
