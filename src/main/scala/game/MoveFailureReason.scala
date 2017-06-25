@@ -1,0 +1,7 @@
+package game
+
+sealed trait MoveFailureReason
+
+case object DirectionBlocked extends MoveFailureReason
+case object JellyPermissionFailure extends MoveFailureReason
+case object InvalidDirectionFromPerspective extends MoveFailureReason
