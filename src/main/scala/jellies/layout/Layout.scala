@@ -7,12 +7,11 @@ final case class LayoutResult private (
     tiles: Seq[LayoutTile])
 
 object Layout {
-  def apply(model: game.Model, player: game.PlayerHandle): LayoutResult = {
-    require(model.perspectives contains player)
-    
+  def apply(modelView: ModelView): LayoutResult = {
+    val model = modelView.model
+    val perspective = modelView.perspective
     val state = model.currentState.state
-    val perspective = model.perspectives(player)
-    val box = state.tileBoundingBox.expand(1)
+    val box = state.tileBoundingBox.expand(2)
     
     def getSameInfo(loc: game.Location) = {
       SameInfo(

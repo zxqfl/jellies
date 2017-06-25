@@ -2,10 +2,11 @@ package jellies.client
 
 import org.scalajs.dom
 import jellies.game
+import jellies.layout
 
 object CanvasManager {
   private var optCanvas: Option[dom.html.Canvas] = None
-  private var drawnModel: Option[game.Model] = None
+  private var drawnModel: Seq[layout.ModelView] = Seq()
   private var oldDimensions: Option[(Int, Int, Int, Int)] = None
   
   def init(canvas: dom.html.Canvas) = {
@@ -16,16 +17,20 @@ object CanvasManager {
   
   def canvas = optCanvas.get
   
-  def setModel(m: game.Model) = (drawnModel = Some(m))
+  def setModelView(m: layout.ModelView*) = {
+    drawnModel = m
+    redraw()
+  }
   
-  def redraw() = {
+  def redraw(): Unit = {
+    checkDimensions()
     Render(
         canvas.getContext("2d").asInstanceOf[dom.raw.CanvasRenderingContext2D],
         Rect(Pt(0, 0), Pt(canvas.width, canvas.height)),
         drawnModel)
   }
   
-  def checkDimensions() {
+  def checkDimensions(): Unit = {
     val ratio: Double = dom.window.devicePixelRatio
     val styleWidth: Int = dom.window.innerWidth.toInt
     val styleHeight: Int = dom.window.innerHeight.toInt

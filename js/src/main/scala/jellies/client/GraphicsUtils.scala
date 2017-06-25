@@ -1,11 +1,16 @@
 package jellies.client
 
+import jellies.game
 import org.scalajs.dom.raw.CanvasRenderingContext2D
 import scala.language.implicitConversions
 
 object GraphicsUtils {
   implicit class WrappedContext(val c: CanvasRenderingContext2D) {
     def rectangle(r: Rect) = c.rect(r.x, r.y, r.width, r.height)
+    def drawRect(r: Rect) = {
+      c.beginPath()
+      rectangle(r)
+    }
     def clearRect(r: Rect) = c.clearRect(r.x, r.y, r.width, r.height)
     def drawCircle(pos: Pt, diameter: Double) = {
       c.beginPath()
@@ -49,17 +54,35 @@ object GraphicsUtils {
       c.clip()
     }
     
-    def scaledFor(natural: Rect, fabricated: Rect)(thunk: => Unit): Unit = {
+    private def scaledForImpl(natural: Rect, fabricated: Rect,
+                              mul: Double, angle: Double,
+                              thunk: => Unit): Unit = {
+      require(!natural.isDegenerate)
+      require(!fabricated.isDegenerate)
       saved {
+        val fw = Math.cos(angle) * fabricated.width +
+                 Math.sin(angle) * fabricated.height
+        val fh = Math.sin(angle) * fabricated.width +
+                 Math.cos(angle) * fabricated.height
         val ratio = Math.min(
-            natural.width / fabricated.width,
-            natural.height / fabricated.height)
+            Math.abs(natural.width / fw),
+            Math.abs(natural.height / fh))
         translate(natural.centre)
-        c.scale(ratio, ratio)
+        c.scale(ratio, ratio * mul)
+        c.rotate(angle)
         translate(-fabricated.centre)
+        clip(fabricated)
         thunk
       }
     }
+    
+    def scaledFor(natural: Rect, fabricated: Rect,
+                  angle: Double = 0)(thunk: => Unit) =
+      scaledForImpl(natural, fabricated, 1, angle, thunk)
+    
+    def scaledForUpsideDown(natural: Rect, fabricated: Rect,
+                            angle: Double = 0)(thunk: => Unit) =
+      scaledForImpl(natural, fabricated, -1, angle, thunk)
     
     def drawText(text: String, where: Pt, height: Double): Unit = {
       saved {
@@ -78,5 +101,17 @@ object GraphicsUtils {
   def drawCircle(c: CanvasRenderingContext2D, pos: Pt, diameter: Double): Unit = {
     c.beginPath()
     c.arc(pos.x, pos.y, diameter / 2, 0, Math.PI * 2)
+  }
+  
+  implicit def boundingBoxToRect(box: game.BoundingBox): Rect = {
+    Rect(Pt(box.left, box.bottom), Pt(box.right, box.top))
+  }
+  
+  implicit def locationToPt(loc: game.Location): Pt = {
+    Pt(loc.x, loc.y)
+  }
+  
+  implicit def colourToString(c: Colour): scala.scalajs.js.Any = {
+    c.representation
   }
 }

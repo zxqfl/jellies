@@ -2,6 +2,8 @@ package jellies.client
 
 import scala.scalajs.js.JSApp
 import org.scalajs.dom
+import jellies.game
+import jellies.layout
 
 object EntryPoint extends JSApp {
 	def main(): Unit = {
@@ -18,5 +20,11 @@ object EntryPoint extends JSApp {
 	      asInstanceOf[dom.html.Canvas]
     
     CanvasManager.init(canvas)
+    
+    val model = new game.Model(game.ExampleLevels.multiplayerLevel)
+    val player = game.ExampleLevels.reader
+    CanvasManager.setModelView(
+        layout.ModelView(model, player),
+        layout.ModelView(model, game.ExampleLevels.other))
 	}
 }

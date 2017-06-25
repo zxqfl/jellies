@@ -1,6 +1,6 @@
 package jellies.game
 
-object LevelSpecs {
+object ExampleLevels {
   val reader = PlayerHandle(1)
   val other = PlayerHandle(2)
   val readerPerspective = Perspective(Direction(0, -1))
@@ -19,7 +19,7 @@ object LevelSpecs {
     """
     ......
     .11...
-    .XX1..
+    .XX1.X
     1X.X1.
     ....X.
     """

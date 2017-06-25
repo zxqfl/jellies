@@ -21,9 +21,12 @@ final case class Pt(x: Double, y: Double) extends Transformable[Pt] {
   def dist(o: Pt) = (this - o).norm
   def manhattanDist(o: Pt) = Math.max(Math.abs(x - o.x), Math.abs(y - o.y))
   def unit: Pt = this / norm
+  def rescale(x: Double) = unit * x
   
   def min(o: Pt) = Pt(Math.min(x, o.x), Math.min(y, o.y))
   def max(o: Pt) = Pt(Math.max(x, o.x), Math.max(y, o.y))
+  
+  def expand(amount: Double) = Rect(this, this).expand(amount)
 }
 final case class Line(a: Pt, b: Pt) extends Transformable[Line] {
   def dist = a dist b
@@ -50,7 +53,8 @@ final case class Rect(topLeft: Pt, bottomRight: Pt) extends Transformable[Rect] 
   def expand(amount: Double) = Rect(
       Pt(topLeft.x - amount, topLeft.y - amount),
       Pt(bottomRight.x + amount, bottomRight.y + amount))
-  
+  def contract(amount: Double) = expand(-amount)
+      
   def centre: Pt = (topLeft + bottomRight) / 2
       
   def + (p: Pt) = Rect(topLeft + p, bottomRight + p)

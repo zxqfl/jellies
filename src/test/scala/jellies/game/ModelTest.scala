@@ -2,7 +2,7 @@ package jellies.game
 
 import org.scalatest._
 
-import LevelSpecs._
+import ExampleLevels._
 
 private class ModelTest extends FunSuite with Matchers {
   
@@ -55,7 +55,7 @@ private class ModelTest extends FunSuite with Matchers {
         """
         ......
         .11...
-        .XX1..
+        .XX1.X
         .X.X1.
         ...1X.
         """)

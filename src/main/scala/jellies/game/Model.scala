@@ -75,7 +75,9 @@ final class Model(val levelSpecification: LevelSpecification) {
     val crnt = currentState.state
     val oa = crnt.at(a)
     val ob = crnt.at(b)
-    oa.isInstanceOf[crnt.JellyRef] && oa == ob
+    val A = oa.isInstanceOf[crnt.JellyRef] && oa == ob
+    val B = oa == crnt.Wall && ob == crnt.Wall
+    A || B
   }
   
   def attemptMove(
