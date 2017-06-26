@@ -9,13 +9,13 @@ final class Model(val levelSpecification: LevelSpecification) {
     levelSpecification.perspectives
   private val initialStateRaw: State = levelSpecification.initialState
   
-  require {
-    initialStateRaw.jellies.forall { j =>
-      perspectives.exists { case (_, p) =>
-        initialStateRaw.hasPermission(j, p)
-      }
-    }
-  }
+//  require {
+//    initialStateRaw.jellies.forall { j =>
+//      perspectives.exists { case (_, p) =>
+//        initialStateRaw.hasPermission(j, p)
+//      }
+//    }
+//  }
   
   final case class WrappedState private (state: State)
   

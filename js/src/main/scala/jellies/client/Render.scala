@@ -1,6 +1,5 @@
 package jellies.client
 
-import org.scalajs.dom.raw.CanvasRenderingContext2D
 import GraphicsUtils._
 import jellies.layout.ModelView
 import jellies.layout.Layout
@@ -13,6 +12,12 @@ import jellies.game.Model
 import jellies.layout.Jelly
 import jellies.layout.SameInfo
 import jellies.game.Perspective
+import jellies.game.Location
+
+final case class RenderInfo(
+    region: Rect,
+    perspective: Perspective,
+    location: Location)
 
 object Render {
   val emptyColour = Colour("#ffffff")
@@ -24,9 +29,10 @@ object Render {
         MergeableColour(3) -> Colour("blue"))
   
   def apply(
-      c: CanvasRenderingContext2D,
+      c: WrappedContext,
       visibleArea: Rect,
-      models: Seq[ModelView]): Unit = {
+      models: Seq[ModelView]): Seq[RenderInfo] = {
+    var renderList: List[RenderInfo] = List()
     c.saved {
       c.lineCap = "square"
       c.clip(visibleArea)
@@ -52,11 +58,13 @@ object Render {
               natural = currentArea,
               fabricated = layout.box.expand(.5),
               angleOf(view.perspective)) {
-            drawTiles(c, angleOf(view.perspective), layout.tiles)
+            renderList ++:= drawTiles(
+                c, view.perspective, layout.tiles)
           }
         }
       }
     }
+    renderList
   }
   
   private def angleOf(p: Perspective): Double = {
@@ -64,39 +72,47 @@ object Render {
   }
   
   private def drawTiles(
-      c: CanvasRenderingContext2D,
-      angle: Double,
-      tiles: Seq[LayoutTile]) = {
-    tiles.foreach {
-      case Empty(p) => drawTile(c, p, emptyColour, angle)
-      case Wall(p, si) => drawTile(c, p, wallColour, angle, si)
-      case Jelly(p, si, col) => drawTile(c, p, colourOf(col), angle, si)
+      c: WrappedContext,
+      perspective: Perspective,
+      tiles: Seq[LayoutTile]): List[RenderInfo] = {
+    tiles.toList.map {
+      case Empty(p) => drawTile(c, p, emptyColour, perspective)
+      case Wall(p, si) => drawTile(c, p, wallColour, perspective, si)
+      case Jelly(p, si, col) => {
+        drawTile(c, p, colourOf(col), perspective, si)
+      }
     }
   }
   
   private val allSame = SameInfo(true, true, true, true) 
   
   private def drawTile(
-      c: CanvasRenderingContext2D,
-      location: Pt,
+      c: WrappedContext,
+      location: Location,
       colour: Colour,
-      angle: Double,
-      sameInfo: SameInfo = allSame) = {
+      perspective: Perspective,
+      sameInfo: SameInfo = allSame): RenderInfo = {
     c.saved {
       c.translate(location)
-      c.rotate(-angle) // this is sketchy
+      c.rotate(-angleOf(perspective)) // this is sketchy
       val rect = Pt(0, 0).expand(.5)
+      val screenRegion = Rect.bound(
+          c.transform(rect.topLeft),
+          c.transform(rect.topRight),
+          c.transform(rect.bottomLeft),
+          c.transform(rect.bottomRight))
       c.saved {
         c.globalAlpha = 0.6
-        c.drawRect(rect)
+        c.drawRect(rect.expand(0.001))
         c.fillWith(colour)
       }
       val radius = 0.03
       def line(a: Pt, b: Pt, extendA: Boolean, extendB: Boolean) = {
+        println(c.transform(a))
         val aa = if (extendA) a + (a-b).rescale(radius*2) else a
         val bb = if (extendB) b + (b-a).rescale(radius*2) else b
         c.drawLine(Line(aa, bb))
-        c.strokeWith(colour, radius * 2 + 0.001)
+        c.strokeWith(colour, radius * 2)
       }
       val smallRect = rect.contract(radius)
       // Yeah, this makes no sense; the directions got confused at some point.
@@ -116,6 +132,7 @@ object Render {
         line(smallRect.bottomLeft, smallRect.topLeft,
              sameInfo.upSame, sameInfo.downSame)
       }
+      RenderInfo(screenRegion, perspective, location)
     }
   }
 }
