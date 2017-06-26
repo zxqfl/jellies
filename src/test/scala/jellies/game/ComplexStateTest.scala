@@ -60,6 +60,24 @@ private class ComplexStateTest extends FunSuite with Matchers {
     result.effects(7) shouldBe a[state.JellyMove]
   }
   
+  test("gravity former bug") {
+    val state = State.fromASCIIArt(
+        """
+        12.
+        1..
+        """)
+    val move = state.Move(
+        state.selectByColour(MergeableColour(1)),
+        Direction(1, 0),
+        readerPerspective)
+    val newState = state.applyMove(move).toOption.get.resultingState
+    newState shouldEqual State.fromASCIIArt(
+        """
+        .12
+        .1.
+        """)
+  }
+  
   test("permission failure") {
     val state = State.fromASCIIArt(complexExample)
     val move = state.Move(

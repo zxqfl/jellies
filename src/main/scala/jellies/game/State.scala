@@ -397,7 +397,7 @@ final class State private (
           Set(m.jelly),
           m.desiredDirection,
           m.perspective).get // legality already checked
-      var fallSet = supported ++ initialEffect.jelliesAffected
+      var fallSet = supported
       var result: Seq[MoveEffect] = Seq(initialEffect)
       while (!fallSet.isEmpty) {
         result ++= applyGravity(fallSet, m.perspective)
