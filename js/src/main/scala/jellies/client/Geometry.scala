@@ -60,10 +60,20 @@ final case class Rect(topLeft: Pt, bottomRight: Pt) extends Transformable[Rect] 
   def + (p: Pt) = Rect(topLeft + p, bottomRight + p)
   def * (s: Double) = Rect(topLeft * s, bottomRight * s)
   
+  def left = topLeft.x
+  def right = bottomRight.x
+  def top = topLeft.y
+  def bottom = bottomRight.y
+  
   def withWidthLeft(d: Double) = Rect(topLeft, Pt(topLeft.x + d, bottomRight.y))
   def withWidthRight(d: Double) = Rect(Pt(bottomRight.x - d, topLeft.y), bottomRight)
   def withHeightTop(d: Double) = Rect(topLeft, Pt(bottomRight.x, topLeft.y + d))
   def withHeightBottom(d: Double) = Rect(Pt(topLeft.x, bottomRight.y - d), bottomRight)
+  
+  def contains(p: Pt): Boolean = {
+    left <= p.x && p.x <= right &&
+    top <= p.y && p.y <= bottom
+  }
 }
 
 object Rect {
