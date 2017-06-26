@@ -7,7 +7,7 @@ import jellies.layout
 import jellies.game.LevelSpecification
 
 object EntryPoint extends JSApp {
-	def main(): Unit = {
+  def main(): Unit = {
     val page = dom.document.getElementById("main")
     page.innerHTML = """
         <div>
@@ -17,12 +17,12 @@ object EntryPoint extends JSApp {
                                        left: 0;"/>
         </div>
         """
-	  val canvas = dom.document.getElementById("canvas").
-	      asInstanceOf[dom.html.Canvas]
+    val canvas = dom.document.getElementById("canvas").
+        asInstanceOf[dom.html.Canvas]
     
     val canvasManager = new CanvasManager(canvas)
     val stateManager = new GameStateManager(canvasManager)
     stateManager.setLevel(game.ExampleLevels.multiplayerLevel)
     val inputManager = new UserInputManager(stateManager)
-	}
+  }
 }
