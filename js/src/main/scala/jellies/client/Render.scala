@@ -16,8 +16,8 @@ import jellies.game.Location
 
 final case class RenderInfo(
     region: Rect,
-    perspective: Perspective,
-    location: Location)
+    location: Location,
+    view: ModelView)
 
 object Render {
   val emptyColour = Colour("#ffffff")
@@ -59,7 +59,7 @@ object Render {
               fabricated = layout.box.expand(.5),
               angleOf(view.perspective)) {
             renderList ++:= drawTiles(
-                c, view.perspective, layout.tiles)
+                c, view, layout.tiles)
           }
         }
       }
@@ -73,13 +73,13 @@ object Render {
   
   private def drawTiles(
       c: WrappedContext,
-      perspective: Perspective,
+      view: ModelView,
       tiles: Seq[LayoutTile]): List[RenderInfo] = {
     tiles.toList.map {
-      case Empty(p) => drawTile(c, p, emptyColour, perspective)
-      case Wall(p, si) => drawTile(c, p, wallColour, perspective, si)
+      case Empty(p) => drawTile(c, p, emptyColour, view)
+      case Wall(p, si) => drawTile(c, p, wallColour, view, si)
       case Jelly(p, si, col) => {
-        drawTile(c, p, colourOf(col), perspective, si)
+        drawTile(c, p, colourOf(col), view, si)
       }
     }
   }
@@ -90,11 +90,11 @@ object Render {
       c: WrappedContext,
       location: Location,
       colour: Colour,
-      perspective: Perspective,
+      view: ModelView,
       sameInfo: SameInfo = allSame): RenderInfo = {
     c.saved {
       c.translate(location)
-      c.rotate(-angleOf(perspective)) // this is sketchy
+      c.rotate(-angleOf(view.perspective)) // this is sketchy
       val rect = Pt(0, 0).expand(.5)
       val screenRegion = Rect.bound(
           c.transform(rect.topLeft),
@@ -108,7 +108,6 @@ object Render {
       }
       val radius = 0.03
       def line(a: Pt, b: Pt, extendA: Boolean, extendB: Boolean) = {
-        println(c.transform(a))
         val aa = if (extendA) a + (a-b).rescale(radius*2) else a
         val bb = if (extendB) b + (b-a).rescale(radius*2) else b
         c.drawLine(Line(aa, bb))
@@ -132,7 +131,7 @@ object Render {
         line(smallRect.bottomLeft, smallRect.topLeft,
              sameInfo.upSame, sameInfo.downSame)
       }
-      RenderInfo(screenRegion, perspective, location)
+      RenderInfo(screenRegion, location, view)
     }
   }
 }

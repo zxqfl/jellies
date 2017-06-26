@@ -23,5 +23,6 @@ object EntryPoint extends JSApp {
     val canvasManager = new CanvasManager(canvas)
     val stateManager = new GameStateManager(canvasManager)
     stateManager.setLevel(game.ExampleLevels.multiplayerLevel)
+    val inputManager = new UserInputManager(stateManager)
 	}
 }

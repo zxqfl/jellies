@@ -18,7 +18,10 @@ private class ModelTest extends FunSuite with Matchers {
     model.canUndo shouldBe false
     model.canRedo shouldBe false
     
-    model.attemptMove(reader, Location(5, 2), readerPerspective.right)
+    model.attemptMove(
+        model.playerWithPerspective(readerPerspective),
+        Location(5, 2),
+        readerPerspective.right)
     
     val expectedStateAfter = State.fromASCIIArt(
         """
@@ -48,9 +51,14 @@ private class ModelTest extends FunSuite with Matchers {
   
   test("different perspectives") {
     val model = new Model(simpleMultiplayerLevel)
-    model.attemptMove(reader, Location(1, 2), readerPerspective.down) shouldBe
-        Left(InvalidDirectionFromPerspective)
-    model.attemptMove(other, Location(1, 2), readerPerspective.down)
+    model.attemptMove(
+        model.playerWithPerspective(readerPerspective),
+        Location(1, 2),
+        readerPerspective.down) shouldBe Left(InvalidDirectionFromPerspective)
+    model.attemptMove(
+        model.playerWithPerspective(otherPerspective),
+        Location(1, 2),
+        readerPerspective.down)
     model.currentState.state shouldBe State.fromASCIIArt(
         """
         ......

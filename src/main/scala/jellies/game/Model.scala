@@ -5,9 +5,20 @@ import scala.collection.immutable
 // Mutable. Represents the current state of the game (including undo and redo
 // stacks).
 final class Model(val levelSpecification: LevelSpecification) {
-  val perspectives: immutable.Map[PlayerHandle, Perspective] =
-    levelSpecification.perspectives
+  val perspectives: immutable.Map[PlayerHandle, Perspective] = {
+    for {
+      (p, i) <- levelSpecification.perspectives.zipWithIndex 
+    } yield {
+      PlayerHandle(i) -> p
+    }
+  }.toMap
+  
+  val playerHandles: Seq[PlayerHandle] =
+    levelSpecification.perspectives.indices.toSeq.map(PlayerHandle) 
+    
   private val initialStateRaw: State = levelSpecification.initialState
+  
+  final case class PlayerHandle private (id: Int)
   
 //  require {
 //    initialStateRaw.jellies.forall { j =>
@@ -56,6 +67,11 @@ final class Model(val levelSpecification: LevelSpecification) {
   
   private def modifyState(s: State): Unit =
     (currentStateStack +:= WrappedState(s))
+    
+  // For clarity of unit tests. Shouldn't be used by client.
+  private[game] def playerWithPerspective(p: Perspective): PlayerHandle = {
+    perspectives.find(_._2 == p).get._1
+  }
   
   sealed trait Tile
   

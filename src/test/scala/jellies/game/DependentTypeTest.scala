@@ -18,4 +18,11 @@ private class DependentTypeTest extends FunSuite with Matchers {
     "a.jellyParts(a.selectByColour(MergeableColour(2)))" should compile
     "a.jellyParts(b.selectByColour(MergeableColour(2)))" shouldNot compile
   }
+  
+  test("player handles") {
+    val a = new Model(ExampleLevels.singlePlayerLevel)
+    val b = new Model(ExampleLevels.singlePlayerLevel)
+    "a.perspectives(a.playerHandles.head)" should compile
+    "a.perspectives(b.playerHandles.head)" shouldNot compile
+  }
 }

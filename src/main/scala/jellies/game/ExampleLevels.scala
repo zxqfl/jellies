@@ -1,8 +1,6 @@
 package jellies.game
 
 object ExampleLevels {
-  val reader = PlayerHandle(1)
-  val other = PlayerHandle(2)
   val readerPerspective = Perspective(Direction(0, -1))
   val otherPerspective = Perspective(Direction(1, 0))
   assert(otherPerspective.down == readerPerspective.right)
@@ -38,17 +36,20 @@ object ExampleLevels {
   val singlePlayerLevel =
     LevelSpecification(
         State.fromASCIIArt(example),
-        Map(reader -> readerPerspective))
+        Seq(readerPerspective))
   val invalidLevel =
     LevelSpecification(
         State.fromASCIIArt(multiplayerExample),
-        Map(reader -> readerPerspective))
+        Seq(readerPerspective))
   val simpleMultiplayerLevel =
     LevelSpecification(
         State.fromASCIIArt(simpleMultiplayerExample),
-        Map(reader -> readerPerspective, other -> otherPerspective))
+        Seq(readerPerspective, otherPerspective))
   val multiplayerLevel =
     LevelSpecification(
         State.fromASCIIArt(multiplayerExample),
-        Map(reader -> readerPerspective, other -> otherPerspective))
+        Seq(readerPerspective, otherPerspective))
+        
+  def reader(m: Model): m.PlayerHandle =
+    m.playerWithPerspective(readerPerspective)
 }

@@ -11,7 +11,7 @@ object Layout {
     val model = modelView.model
     val perspective = modelView.perspective
     val state = model.currentState.state
-    val box = state.tileBoundingBox.expand(2)
+    val box = state.tileBoundingBox.expand(1)
     
     def getSameInfo(loc: game.Location) = {
       SameInfo(
