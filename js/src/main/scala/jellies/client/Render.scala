@@ -31,12 +31,15 @@ object Render {
   def apply(
       c: WrappedContext,
       visibleArea: Rect,
-      models: Seq[ModelView]): Seq[RenderInfo] = {
+      models: Seq[ModelView],
+      locationMap: Location => Pt): Seq[RenderInfo] = {
     var renderList: List[RenderInfo] = List()
     c.saved {
       c.lineCap = "square"
       c.clip(visibleArea)
       c.clearRect(visibleArea)
+      c.drawRect(visibleArea)
+      c.fillWith(emptyColour)
       
       if (models.isEmpty) {
         c.scaledFor(
@@ -59,7 +62,7 @@ object Render {
               fabricated = layout.box.expand(.5),
               angleOf(view.perspective)) {
             renderList ++:= drawTiles(
-                c, view, layout.tiles)
+                c, view, layout.tiles, locationMap)
           }
         }
       }
@@ -74,12 +77,15 @@ object Render {
   private def drawTiles(
       c: WrappedContext,
       view: ModelView,
-      tiles: Seq[LayoutTile]): List[RenderInfo] = {
-    tiles.toList.map {
-      case Empty(p) => drawTile(c, p, emptyColour, view)
-      case Wall(p, si) => drawTile(c, p, wallColour, view, si)
+      tiles: Seq[LayoutTile],
+      locationMap: Location => Pt): List[RenderInfo] = {
+    tiles.toList.flatMap {
+      case Empty(p) => List()
+      case Wall(p, si) => {
+        List(drawTile(c, p, locationMap, wallColour, view, si))
+      }
       case Jelly(p, si, col) => {
-        drawTile(c, p, colourOf(col), view, si)
+        List(drawTile(c, p, locationMap, colourOf(col), view, si))
       }
     }
   }
@@ -89,11 +95,12 @@ object Render {
   private def drawTile(
       c: WrappedContext,
       location: Location,
+      locMap: Location => Pt,
       colour: Colour,
       view: ModelView,
       sameInfo: SameInfo = allSame): RenderInfo = {
     c.saved {
-      c.translate(location)
+      c.translate(locMap(location))
       c.rotate(-angleOf(view.perspective)) // this is sketchy
       val rect = Pt(0, 0).expand(.5)
       val screenRegion = Rect.bound(

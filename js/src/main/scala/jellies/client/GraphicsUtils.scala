@@ -15,10 +15,6 @@ object GraphicsUtils {
     Rect(Pt(box.left, box.bottom), Pt(box.right, box.top))
   }
   
-  implicit def locationToPt(loc: game.Location): Pt = {
-    Pt(loc.x, loc.y)
-  }
-  
   implicit def colourToString(c: Colour): scala.scalajs.js.Any = {
     c.representation
   }

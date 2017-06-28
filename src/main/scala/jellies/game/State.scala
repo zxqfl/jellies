@@ -139,15 +139,18 @@ final class State private (
   
   sealed trait MoveEffect {
     def jelliesAffected: Set[JellyRef]
+    def oldLocations: Set[Location]
   }
   
-  final case class JellyMerge(
-      merges: Set[Set[JellyRef]]) extends MoveEffect {
+  final case class JellyMerge private (
+      merges: Set[Set[JellyRef]],
+      oldLocations: Set[Location]) extends MoveEffect {
     def jelliesAffected = merges.flatten
   }
       
   final case class JellyMove(
       jelliesAffected: Set[JellyRef],
+      oldLocations: Set[Location],
       direction: Direction) extends MoveEffect
   
   // Mutable.
@@ -235,8 +238,12 @@ final class State private (
       }
     }
     
+    private def locationsOf(js: Set[JellyRef]) =
+      js map representative flatMap apply
+    
     private def forceMove(js: Set[JellyRef], direction: Direction): JellyMove = {
       val currentLocations = js.map(j => (j, jellyTiles(j.id)))
+      val originalLocations = currentLocations flatMap (_._2)
       for {
         (j, locs) <- currentLocations
         loc <- locs
@@ -245,7 +252,7 @@ final class State private (
         (j, locs) <- currentLocations
         loc <- locs
       } this(loc.translate(direction)) = j
-      JellyMove(js, direction)
+      JellyMove(js, originalLocations, direction)
     }
     
     def applyHorizontalMove(
@@ -317,7 +324,7 @@ final class State private (
       if (changes.isEmpty)
         Seq()
       else
-        Seq(JellyMerge(changes))
+        Seq(JellyMerge(changes, locationsOf(changes.flatten)))
     }
     
     private def remainingJellies: Set[JellyRef] =

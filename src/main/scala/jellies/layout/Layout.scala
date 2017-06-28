@@ -15,10 +15,10 @@ object Layout {
     
     def getSameInfo(loc: game.Location) = {
       SameInfo(
-          leftSame = model.together(loc, loc translate perspective.left),
-          rightSame = model.together(loc, loc translate perspective.right),
-          upSame = model.together(loc, loc translate perspective.up),
-          downSame = model.together(loc, loc translate perspective.down))
+          leftSame = model.together(loc, loc + perspective.left),
+          rightSame = model.together(loc, loc + perspective.right),
+          upSame = model.together(loc, loc + perspective.up),
+          downSame = model.together(loc, loc + perspective.down))
     }
     
     val tiles = for (loc <- box.allTiles) yield {

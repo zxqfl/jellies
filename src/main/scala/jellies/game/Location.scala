@@ -8,5 +8,8 @@ final case class Location private[game] (
       Location(x+1, y),
       Location(x, y-1),
       Location(x, y+1))
-  def translate(d: Direction) = Location(x + d.dx, y + d.dy)
+      
+  def + (d: Direction) = Location(x + d.dx, y + d.dy)
+  def - (d: Direction) = Location(x - d.dx, y - d.dy)
+  def translate(d: Direction) = this + d
 }

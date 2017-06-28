@@ -28,7 +28,10 @@ class GameStateManager(val canvasManager: CanvasManager) {
       val result = view.model.attemptMove(view.player, location, direction)
       result match {
         case Left(x) => canvasManager.showMessage(x.toString)
-        case Right(_) => onModelUpdate()
+        case Right(result) => {
+          canvasManager.animateMove(result)
+          onModelUpdate()
+        }
       }
     }
   }
