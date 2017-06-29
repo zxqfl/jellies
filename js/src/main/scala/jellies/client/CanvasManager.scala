@@ -31,7 +31,7 @@ class CanvasManager(val canvas: dom.html.Canvas) {
     val renderer = optAnimation match {
       case Some(a) => a.getRenderer(currentTimeSeconds)
       case None => {
-        new MoveAnimation(currentTimeSeconds, drawnModel)
+        MoveAnimation(currentTimeSeconds, drawnModel)
             .getRenderer(currentTimeSeconds)
       }
     }

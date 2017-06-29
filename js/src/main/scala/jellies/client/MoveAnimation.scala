@@ -6,14 +6,15 @@ import jellies.game.Location
 import jellies.layout.ModelView
 import jellies.layout.Layout
 
+trait RendererManager {
+  def getRenderer(currentTime: Seconds): Renderer
+  def isDone(currentTime: Seconds): Boolean
+}
+
 final class MoveAnimation(
     startTime: Seconds,
     moveData: MoveResult,
-    views: Seq[ModelView]) {
-  
-  def this(startTime: Seconds, views: Seq[ModelView]) = this(
-      startTime, views.head.model.currentState.state.emptyMoveResult, views)
-  
+    views: Seq[ModelView]) extends RendererManager {
   private val layouts = {
     for (v <- views) yield new Layout(moveData, v.perspective)
   }
@@ -50,5 +51,19 @@ final class MoveAnimation(
   def isDone(currentTime: Seconds) = {
     val timeSinceStart = currentTime - startTime
     timeSinceStart.s >= totalAnimationTime.s
+  }
+}
+
+object MoveAnimation {
+  def apply(startTime: Seconds, views: Seq[ModelView]) = {
+    if (views.isEmpty) {
+      new RendererManager {
+        def getRenderer(s: Seconds) = new Renderer(Seq(), 0, 0)
+        def isDone(s: Seconds) = false
+      }
+    } else {
+      new MoveAnimation(startTime,
+          views.head.model.currentState.state.emptyMoveResult, views)
+    }
   }
 }

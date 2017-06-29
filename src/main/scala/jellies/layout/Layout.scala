@@ -11,7 +11,7 @@ class Layout(val moveInfo: MoveResult, val perspective: Perspective) {
   private case class InterimState(
       locMap: Map[Location, moveInfo.initialState.JellyRef],
       jellyMap: Map[moveInfo.initialState.JellyRef,
-                    Set[moveInfo.initialState.JellyRef]]) {
+                    moveInfo.initialState.JellyRef]) {
     
     def >>> (effect: moveInfo.initialState.MoveEffect): InterimState = {
       effect match {
@@ -23,21 +23,35 @@ class Layout(val moveInfo: MoveResult, val perspective: Perspective) {
           for (loc <- m.oldLocations) {
             newLocs += (loc + m.direction) -> locMap(loc)
           }
+          val s2 = newLocs.size
           InterimState(newLocs, jellyMap)
         }
         case m: moveInfo.initialState.JellyMerge => {
           var newJellies = jellyMap
-          for {
-            jelly <- m.merges
-            part <- jelly
-          } newJellies += (part -> jelly)
+          for (jelly <- m.merges) {
+            val repr = jelly.head
+            for (part <- jelly) {
+              newJellies += (part -> repr)
+            }
+          }
           InterimState(locMap, newJellies)
         }
       }
     }
     
     def at(loc: Location) = {
-      locMap.getOrElse(loc, moveInfo.initialState.at(loc))
+      locMap.get(loc) match {
+        case Some(j: moveInfo.initialState.JellyRef) => {
+          jellyMap(j)
+        }
+        case Some(x) => x
+        case None => moveInfo.initialState.at(loc) match {
+          case _: moveInfo.initialState.JellyRef => {
+            moveInfo.initialState.OpenSpace
+          }
+          case x => x
+        }
+      }
     }
     
     def getSameInfo(
@@ -59,7 +73,7 @@ class Layout(val moveInfo: MoveResult, val perspective: Perspective) {
       } yield (loc -> moveInfo.initialState.at(loc).asInstanceOf[moveInfo.initialState.JellyRef])
     }.toMap
     val jellyMap = {
-      for (j <- moveInfo.initialState.jellies) yield (j -> Set(j))
+      for (j <- moveInfo.initialState.jellies) yield (j -> j)
     }.toMap
     InterimState(locMap, jellyMap)
   }

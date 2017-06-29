@@ -120,7 +120,7 @@ class Renderer(layouts: Seq[Layout], index: Int, lambda: Double) {
         c.drawRect(rect.expand(0.001))
         c.fillWith(colour)
       }
-      val radius = 0.03
+      val radius = 0.04
       def line(a: Pt, b: Pt, extendA: Boolean, extendB: Boolean) = {
         val aa = if (extendA) a + (a-b).rescale(radius*2) else a
         val bb = if (extendB) b + (b-a).rescale(radius*2) else b

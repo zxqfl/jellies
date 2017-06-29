@@ -5,6 +5,13 @@ object ExampleLevels {
   val otherPerspective = Perspective(Direction(1, 0))
   assert(otherPerspective.down == readerPerspective.right)
   
+  val simpleExample = 
+    """
+    ......
+    .1.2..
+    .XXX..
+    ......
+    """
   val example = 
     """
     ......
@@ -33,6 +40,10 @@ object ExampleLevels {
     ....1..
     """
   
+  val simpleSinglePlayerLevel =
+    LevelSpecification(
+        State.fromASCIIArt(simpleExample),
+        Seq(readerPerspective))
   val singlePlayerLevel =
     LevelSpecification(
         State.fromASCIIArt(example),

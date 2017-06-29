@@ -262,7 +262,8 @@ final class State private (
         (j, locs) <- currentLocations
         loc <- locs
       } this(loc.translate(direction)) = j
-      JellyMove(js, originalLocations, direction)
+      JellyMove(jellies.filter(x => js contains representative(x)),
+                originalLocations, direction)
     }
     
     def applyHorizontalMove(
