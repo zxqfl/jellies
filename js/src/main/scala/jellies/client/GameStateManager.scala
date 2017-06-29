@@ -5,6 +5,7 @@ import jellies.game.Model
 import jellies.layout.ModelView
 import jellies.game.Location
 import jellies.game.Direction
+import jellies.layout.Layout
 
 class GameStateManager(val canvasManager: CanvasManager) {
   private var optModel: Option[Model] = None
@@ -19,13 +20,17 @@ class GameStateManager(val canvasManager: CanvasManager) {
   }
   
   def submitMoveAttempt(
-      view: ModelView,
+      layout: Layout,
       location: Location,
       direction: Direction): Unit = {
-    if (optModel.isEmpty || (view.model ne optModel.get)) {
+    if (optModel.isEmpty ||
+        (layout.moveInfo.resultingState ne optModel.get.currentState.state)) {
       System.err.println("An out of date model was submitted.")
     } else {
-      val result = view.model.attemptMove(view.player, location, direction)
+      val model = optModel.get
+      val result = model.attemptMove(
+          model.playerWithPerspective(layout.perspective),
+          location, direction)
       result match {
         case Left(x) => canvasManager.showMessage(x.toString)
         case Right(result) => {

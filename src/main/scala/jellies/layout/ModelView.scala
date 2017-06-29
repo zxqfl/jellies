@@ -1,6 +1,7 @@
 package jellies.layout
 
 import jellies.game
+import jellies.game.State
 
 sealed trait ModelView {
   val model: game.Model

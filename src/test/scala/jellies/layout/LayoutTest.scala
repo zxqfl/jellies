@@ -8,7 +8,8 @@ import jellies.game
 private class LayoutTest extends FunSuite with Matchers {
   test("layout sanity test") {
     val model = new game.Model(singlePlayerLevel)
-    val layoutResult = Layout(ModelView(model)(reader(model)))
-    layoutResult.tiles.size should be > 25
+    val state = model.currentState.state
+    val layout = new Layout(state.emptyMoveResult, readerPerspective)
+    layout.tiles(0).size should be > 25
   }
 }

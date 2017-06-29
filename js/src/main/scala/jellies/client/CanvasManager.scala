@@ -28,28 +28,29 @@ class CanvasManager(val canvas: dom.html.Canvas) {
     }
     
     checkDimensions()
-    val results = Render(
-        new WrappedContext(canvas.getContext("2d").
-            asInstanceOf[dom.raw.CanvasRenderingContext2D]),
-        Rect(Pt(0, 0), Pt(canvas.width, canvas.height)),
-        drawnModel,
-        animationFunction)
+    val renderer = optAnimation match {
+      case Some(a) => a.getRenderer(currentTimeSeconds)
+      case None => {
+        new MoveAnimation(currentTimeSeconds, drawnModel)
+            .getRenderer(currentTimeSeconds)
+      }
+    }
+    val results = renderer(
+        new WrappedContext(canvas.getContext("2d")
+            .asInstanceOf[dom.raw.CanvasRenderingContext2D]),
+        Rect(Pt(0, 0), Pt(canvas.width, canvas.height)))
     infoFromLastRender = results
   }
   
   def animateMove(result: MoveResult) = {
-    optAnimation = Some(new MoveAnimation(currentTimeSeconds, result))
+    optAnimation = Some(new MoveAnimation(
+        currentTimeSeconds,
+        result,
+        drawnModel))
   }
   
   private def currentTimeSeconds =
     Seconds(System.currentTimeMillis() / 1000.0)
-  
-  private def animationFunction: Location => Pt = {
-    optAnimation match {
-      case Some(x) => x(currentTimeSeconds)
-      case None => (loc => Pt(loc.x, loc.y))
-    }
-  }
   
   def checkDimensions(): Unit = {
     val ratio: Double = dom.window.devicePixelRatio

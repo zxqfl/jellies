@@ -3,23 +3,27 @@ package jellies.client
 import GraphicsUtils._
 import jellies.layout.ModelView
 import jellies.layout.Layout
-import jellies.layout.LayoutTile
-import jellies.layout.Empty
-import jellies.layout.Wall
 import jellies.game.JellyColour
 import jellies.game.MergeableColour
 import jellies.game.Model
-import jellies.layout.Jelly
 import jellies.layout.SameInfo
 import jellies.game.Perspective
 import jellies.game.Location
+import jellies.layout.Layout
+import jellies.game.Direction
 
 final case class RenderInfo(
     region: Rect,
     location: Location,
-    view: ModelView)
+    originator: Layout)
 
-object Render {
+// 1 - lambda = weight of layouts(index)
+// lambda = weight of next layout
+// In other words, lambda represents your progress in completing the
+// current animation.
+class Renderer(layouts: Seq[Layout], index: Int, lambda: Double) {
+  require(0 <= lambda && lambda <= 1)
+  
   val emptyColour = Colour("#ffffff")
   val wallColour = Colour("#cccccc")
   val colourOf: Map[JellyColour, Colour] =
@@ -30,9 +34,7 @@ object Render {
   
   def apply(
       c: WrappedContext,
-      visibleArea: Rect,
-      models: Seq[ModelView],
-      locationMap: Location => Pt): Seq[RenderInfo] = {
+      visibleArea: Rect): Seq[RenderInfo] = {
     var renderList: List[RenderInfo] = List()
     c.saved {
       c.lineCap = "square"
@@ -41,28 +43,26 @@ object Render {
       c.drawRect(visibleArea)
       c.fillWith(emptyColour)
       
-      if (models.isEmpty) {
+      if (layouts.isEmpty) {
         c.scaledFor(
             natural = visibleArea,
             fabricated = Rect(Pt(0, 0), Pt(1, 1))) {
-          c.drawText("no model to draw :'(", Pt(0.5, 0.5), 0.1)            
+          c.drawText("nothing to draw :'(", Pt(0.5, 0.5), 0.1)            
         }
       } else {
         val l = visibleArea.topLeft.x
         val r = visibleArea.bottomRight.x
-        for ((view, index) <- models.zipWithIndex) {
-          val a = l + (r - l) * index / models.size
-          val b = l + (r - l) * (index + 1) / models.size
+        for ((layout, index) <- layouts.zipWithIndex) {
+          val a = l + (r - l) * index / layouts.size
+          val b = l + (r - l) * (index + 1) / layouts.size
           val currentArea = Rect(
               Pt(a, visibleArea.topLeft.y),
               Pt(b, visibleArea.bottomRight.y)).contract(100)
-          val layout = Layout(view)
           c.scaledForUpsideDown(
               natural = currentArea,
-              fabricated = layout.box.expand(.5),
-              angleOf(view.perspective)) {
-            renderList ++:= drawTiles(
-                c, view, layout.tiles, locationMap)
+              fabricated = layout.boundingBox.expand(.5),
+              angleOf(layout.perspective)) {
+            renderList ++:= drawTiles(c, layout)
           }
         }
       }
@@ -76,18 +76,25 @@ object Render {
   
   private def drawTiles(
       c: WrappedContext,
-      view: ModelView,
-      tiles: Seq[LayoutTile],
-      locationMap: Location => Pt): List[RenderInfo] = {
-    tiles.toList.flatMap {
-      case Empty(p) => List()
-      case Wall(p, si) => {
-        List(drawTile(c, p, locationMap, wallColour, view, si))
+      layout: Layout): List[RenderInfo] = {
+    val result = layout.tiles(index).map {
+      case layout.Wall(loc, sameInfo) => {
+        drawTile(c, loc, layout, Pt(loc), wallColour, sameInfo)
       }
-      case Jelly(p, si, col) => {
-        List(drawTile(c, p, locationMap, colourOf(col), view, si))
+      case j @ layout.Jelly(loc, sameInfo, ref, _) => {
+        val optDir: Option[Direction] = layout.directions(index).get(ref)
+        val pt: Pt = optDir match {
+          case None => Pt(loc)
+          case Some(dir) => {
+            val a = Pt(loc)
+            val b = Pt(loc + dir)
+            a * (1 - lambda) + b * lambda
+          }
+        }
+        drawTile(c, loc, layout, pt, colourOf(ref.colour), sameInfo)
       }
     }
+    result.toList
   }
   
   private val allSame = SameInfo(true, true, true, true) 
@@ -95,13 +102,13 @@ object Render {
   private def drawTile(
       c: WrappedContext,
       location: Location,
-      locMap: Location => Pt,
+      layout: Layout,
+      point: Pt,
       colour: Colour,
-      view: ModelView,
       sameInfo: SameInfo = allSame): RenderInfo = {
     c.saved {
-      c.translate(locMap(location))
-      c.rotate(-angleOf(view.perspective)) // this is sketchy
+      c.translate(point)
+      c.rotate(-angleOf(layout.perspective)) // this is sketchy
       val rect = Pt(0, 0).expand(.5)
       val screenRegion = Rect.bound(
           c.transform(rect.topLeft),
@@ -138,7 +145,7 @@ object Render {
         line(smallRect.bottomLeft, smallRect.topLeft,
              sameInfo.upSame, sameInfo.downSame)
       }
-      RenderInfo(screenRegion, location, view)
+      RenderInfo(screenRegion, location, layout)
     }
   }
 }

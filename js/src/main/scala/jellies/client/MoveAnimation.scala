@@ -3,57 +3,52 @@ package jellies.client
 import jellies.game.MoveResult
 import jellies.game.State
 import jellies.game.Location
+import jellies.layout.ModelView
+import jellies.layout.Layout
 
 final class MoveAnimation(
     startTime: Seconds,
-    moveData: MoveResult) {
+    moveData: MoveResult,
+    views: Seq[ModelView]) {
+  
+  def this(startTime: Seconds, views: Seq[ModelView]) = this(
+      startTime, views.head.model.currentState.state.emptyMoveResult, views)
+  
+  private val layouts = {
+    for (v <- views) yield new Layout(moveData, v.perspective)
+  }
+  
   private val secondsPerAnimation: Double = 0.17
   private val allEffects = moveData.effects
-  private val movementEffects = {
-    allEffects.flatMap {
-      case x: moveData.initialState.JellyMove => Some(x)
+  private val indices = {
+    allEffects.zipWithIndex.flatMap {
+      case (x: moveData.initialState.JellyMove, i) => Some(i)
       case _ => None
     }
   }
-  val totalAnimationTime = Seconds(secondsPerAnimation * movementEffects.size)
+  val totalAnimationTime = Seconds(secondsPerAnimation * indices.size)
   
-  private val animationMapper: Seq[Map[Location, Location]] = {
-    val allLocations = moveData.resultingState.allLocations
-    val initial = List((allLocations zip allLocations).toMap)
-    val maps = movementEffects.foldRight(initial) { (effect, maps) =>
-      val original = maps.head
-      effect.oldLocations.foldLeft(Map[Location, Location]()) {(m, loc) =>
-        val newLoc = loc + effect.direction
-        m + (loc -> original(newLoc))
-      } +: maps
-    }
-    maps.map { m =>
-      m.toSeq.map{ case (a, b) => (b, a) }.toMap
-    }
-  }
-  
-  println(animationMapper.size)
-  
-  def isDone(t: Seconds) = (t.s - startTime.s >= totalAnimationTime.s)
-  
-  private def atTime(effectIndex: Int, loc: Location): Location = {
-    animationMapper(effectIndex).getOrElse(loc, loc)
-  }
-  
-  def apply(currentTime: Seconds)(loc: Location): Pt = {
+  def getRenderer(currentTime: Seconds) = {
     val timeSinceStart = currentTime - startTime
-    require(timeSinceStart.s >= 0)
     
-    if (timeSinceStart.s >= totalAnimationTime.s) {
-      pt(loc)
-    } else {
-      val animationTime = timeSinceStart.s / secondsPerAnimation
-      val t1: Int = Math.floor(animationTime).toInt
-      val t2: Int = Math.ceil(animationTime).toInt
-      val lambda: Double = animationTime - t1
-      pt(atTime(t2, loc)) * lambda + pt(atTime(t1, loc)) * (1 - lambda)
+    val (index, lambda) = {
+      if (timeSinceStart.s >= totalAnimationTime.s) {
+        (allEffects.length, 0.toDouble)
+      } else {
+        val t: Double = timeSinceStart.s / secondsPerAnimation
+        val baseIndex = t.toInt
+        val lambda = t - baseIndex
+        val idx = Math.min(
+            Math.max(baseIndex, 0),
+            indices.length - 1)
+        (indices(idx), lambda)
+      }
     }
+    new Renderer(layouts, index, lambda)
   }
   
-  def pt(loc: Location) = Pt(loc.x, loc.y)
+  def isDone(currentTime: Seconds) = {
+    val timeSinceStart = currentTime - startTime
+    timeSinceStart.s >= totalAnimationTime.s
+  }
 }

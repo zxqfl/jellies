@@ -1,5 +1,7 @@
 package jellies.client
 
+import jellies.game.Location
+
 trait Transformable[+T] {
   this: T =>
     def + (o: Pt): T
@@ -84,4 +86,8 @@ object Rect {
     val top: Double    = points.map(_.y).reduce(_ min _)
     Rect(Pt(left, top), Pt(right, bottom))
   }
+}
+
+object Pt {
+  def apply(loc: Location): Pt = Pt(loc.x, loc.y)
 }

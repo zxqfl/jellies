@@ -55,7 +55,7 @@ private class ModelTest extends FunSuite with Matchers {
         model.playerWithPerspective(readerPerspective),
         Location(1, 2),
         readerPerspective.down) shouldBe Left(InvalidDirectionFromPerspective)
-    model.attemptMove(
+    val result = model.attemptMove(
         model.playerWithPerspective(otherPerspective),
         Location(1, 2),
         readerPerspective.down)
@@ -67,5 +67,6 @@ private class ModelTest extends FunSuite with Matchers {
         .X.X1.
         ...1X.
         """)
+    assert(result.toOption.get.resultingState eq model.currentState.state)
   }
 }

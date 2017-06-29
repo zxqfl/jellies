@@ -74,6 +74,9 @@ final class State private (
   def allLocations: Set[Location] = tiles.keySet
   def jellyParts(j: JellyRef): Set[Location] =
     allLocations.filter(tiles(_) == j)
+  def anyTileOf(j: JellyRef): Location = {
+    tiles.find(_._2 == j).get._1
+  }
     
   private[game] def selectByColour(colour: JellyColour): JellyRef = {
     val candidates = jellies.filter(_.colour == colour)
@@ -133,6 +136,13 @@ final class State private (
       _ <- checkPermission(m)
       _ <- checkBlocked(m)
     } yield applyLegalMove(m)
+  }
+  
+  def emptyMoveResult: MoveResult = {
+    val refMap = {
+      for (j <- jellies) yield (j -> j)
+    }.toMap
+    MoveResult(this, this)(Seq(), refMap)
   }
   
   def tileBoundingBox: BoundingBox = new BoundingBox(allLocations.toSeq: _*)

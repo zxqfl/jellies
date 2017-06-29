@@ -17,7 +17,9 @@ private class SimpleStateTest extends FunSuite with Matchers {
     val state = State.fromASCIIArt(simpleExample)
     state.jellies.size shouldEqual 3
     state.at(Location(5, 1)) shouldEqual state.Wall
-    state.at(Location(5, 2)) shouldBe an[state.JellyRef]
+    state.at(Location(5, 2)) shouldBe a[state.JellyRef]
+    state.anyTileOf(state.at(Location(5, 2))
+        .asInstanceOf[state.JellyRef]) shouldEqual Location(5, 2)
     state.at(Location(5, 3)) shouldEqual state.OpenSpace
     state.at(Location(2, 4)) shouldEqual state.at(Location(3, 4))
     State.toASCIIArt(state) shouldEqual ("""

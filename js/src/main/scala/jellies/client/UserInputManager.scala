@@ -19,12 +19,12 @@ class UserInputManager(val stateManager: GameStateManager) {
       for (info <- canvasManager.interpret(e)) {
         val dir = {
           if (e.button == leftMouseButton)
-            info.view.perspective.left
+            info.originator.perspective.left
           else
-            info.view.perspective.right
+            info.originator.perspective.right
         }
         stateManager.submitMoveAttempt(
-            info.view,
+            info.originator,
             info.location,
             dir)
       }

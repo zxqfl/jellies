@@ -68,8 +68,7 @@ final class Model(val levelSpecification: LevelSpecification) {
   private def modifyState(s: State): Unit =
     (currentStateStack +:= WrappedState(s))
     
-  // For clarity of unit tests. Shouldn't be used by client.
-  private[game] def playerWithPerspective(p: Perspective): PlayerHandle = {
+  def playerWithPerspective(p: Perspective): PlayerHandle = {
     perspectives.find(_._2 == p).get._1
   }
   
@@ -87,14 +86,14 @@ final class Model(val levelSpecification: LevelSpecification) {
       case crnt.JellyRef(_, colour) => JellyTile(colour)
     }
   }
-  def together(a: Location, b: Location): Boolean = {
-    val crnt = currentState.state
-    val oa = crnt.at(a)
-    val ob = crnt.at(b)
-    val A = oa.isInstanceOf[crnt.JellyRef] && oa == ob
-    val B = oa == crnt.Wall && ob == crnt.Wall
-    A || B
-  }
+//  def together(a: Location, b: Location): Boolean = {
+//    val crnt = currentState.state
+//    val oa = crnt.at(a)
+//    val ob = crnt.at(b)
+//    val A = oa.isInstanceOf[crnt.JellyRef] && oa == ob
+//    val B = oa == crnt.Wall && ob == crnt.Wall
+//    A || B
+//  }
   
   def attemptMove(
       player: PlayerHandle,

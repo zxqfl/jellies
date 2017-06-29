@@ -1,34 +1,120 @@
 package jellies.layout
 
 import jellies.game
+import jellies.game.MoveResult
+import jellies.game.Location
+import jellies.game.Perspective
+import jellies.game.State
+import jellies.game.Direction
 
-final case class LayoutResult private (
-    box: game.BoundingBox,
-    tiles: Seq[LayoutTile])
-
-object Layout {
-  def apply(modelView: ModelView): LayoutResult = {
-    val model = modelView.model
-    val perspective = modelView.perspective
-    val state = model.currentState.state
-    val box = state.tileBoundingBox.expand(1)
+class Layout(val moveInfo: MoveResult, val perspective: Perspective) {
+  private case class InterimState(
+      locMap: Map[Location, moveInfo.initialState.JellyRef],
+      jellyMap: Map[moveInfo.initialState.JellyRef,
+                    Set[moveInfo.initialState.JellyRef]]) {
     
-    def getSameInfo(loc: game.Location) = {
-      SameInfo(
-          leftSame = model.together(loc, loc + perspective.left),
-          rightSame = model.together(loc, loc + perspective.right),
-          upSame = model.together(loc, loc + perspective.up),
-          downSame = model.together(loc, loc + perspective.down))
+    def >>> (effect: moveInfo.initialState.MoveEffect): InterimState = {
+      effect match {
+        case m: moveInfo.initialState.JellyMove => {
+          var newLocs = locMap
+          for (loc <- m.oldLocations) {
+            newLocs -= loc
+          }
+          for (loc <- m.oldLocations) {
+            newLocs += (loc + m.direction) -> locMap(loc)
+          }
+          InterimState(newLocs, jellyMap)
+        }
+        case m: moveInfo.initialState.JellyMerge => {
+          var newJellies = jellyMap
+          for {
+            jelly <- m.merges
+            part <- jelly
+          } newJellies += (part -> jelly)
+          InterimState(locMap, newJellies)
+        }
+      }
     }
     
-    val tiles = for (loc <- box.allTiles) yield {
-      state.at(loc) match {
-        case state.Wall => Wall(loc, getSameInfo(loc))
-        case state.OpenSpace => Empty(loc)
-        case state.JellyRef(_, colour) => Jelly(loc, getSameInfo(loc), colour)
-      }
-    }: LayoutTile
+    def at(loc: Location) = {
+      locMap.getOrElse(loc, moveInfo.initialState.at(loc))
+    }
     
-    LayoutResult(box, tiles.toSeq)
+    def getSameInfo(
+        loc: Location, 
+        tile: moveInfo.initialState.Tile): SameInfo = {
+      SameInfo(
+          leftSame = (tile == at(loc + perspective.left)),
+          rightSame = (tile == at(loc + perspective.right)),
+          upSame = (tile == at(loc + perspective.up)),
+          downSame = (tile == at(loc + perspective.down)))
+    }
   }
+      
+  private def initialInterimState = {
+    val locMap = {
+      for {
+        loc <- moveInfo.initialState.allLocations
+        if moveInfo.initialState.at(loc).isInstanceOf[moveInfo.initialState.JellyRef]
+      } yield (loc -> moveInfo.initialState.at(loc).asInstanceOf[moveInfo.initialState.JellyRef])
+    }.toMap
+    val jellyMap = {
+      for (j <- moveInfo.initialState.jellies) yield (j -> Set(j))
+    }.toMap
+    InterimState(locMap, jellyMap)
+  }
+  
+  val boundingBox = moveInfo.initialState.tileBoundingBox.expand(1)
+  
+  sealed trait Tile {
+    def finalLocation: Location
+  }
+  
+  final case class Wall(
+      location: Location,
+      sameInfo: SameInfo) extends Tile {
+    def finalLocation = location
+  }
+  final case class Jelly(
+      location: Location,
+      sameInfo: SameInfo,
+      refA: moveInfo.initialState.JellyRef,
+      refB: moveInfo.resultingState.JellyRef) extends Tile {
+    def finalLocation = moveInfo.resultingState.anyTileOf(refB)
+  }
+      
+  val tiles: Seq[Seq[Tile]] = {
+    moveInfo.effects
+        .scanLeft(initialInterimState)(_ >>> _)
+        .map { interimState =>
+      val elts = for {
+        loc <- boundingBox.allTiles
+        here <- interimState.at(loc) match {
+          case jelly: moveInfo.initialState.JellyRef => {
+            Some(Jelly(loc, interimState.getSameInfo(loc, jelly),
+                  jelly, moveInfo.refMap(jelly)))
+          }
+          case moveInfo.initialState.OpenSpace => None
+          case x @ moveInfo.initialState.Wall => {
+            Some(Wall(loc, interimState.getSameInfo(loc, x))) 
+          }
+        }
+      } yield here
+      elts.toSeq
+    }
+  }
+  
+  val directions: Seq[Map[moveInfo.initialState.JellyRef, Direction]] = {
+    val maps = moveInfo.effects.map {
+      case _: moveInfo.initialState.JellyMerge => {
+        Map[moveInfo.initialState.JellyRef, Direction]()
+      }
+      case m: moveInfo.initialState.JellyMove => {
+        for (j <- m.jelliesAffected) yield (j -> m.direction)
+      }.toMap
+    }
+    maps :+ Map()
+  }
+  
+  assert(tiles.length == directions.length)
 }
