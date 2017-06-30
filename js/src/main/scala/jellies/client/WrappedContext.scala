@@ -38,10 +38,11 @@ class WrappedContext(private val c: CanvasRenderingContext2D) {
     c.lineTo(pos.x - diameter / 2, pos.y)
     c.closePath()
   }
-  def fillWith(style: scala.scalajs.js.Any) = {
+  def fillWith(style: String): Unit = {
     c.fillStyle = style
     c.fill()
   }
+  def fillWith(c: Colour): Unit = fillWith(c.representation)
   def strokeWith(style: scala.scalajs.js.Any, width: Double) = {
     c.strokeStyle = style
     c.lineWidth = width
@@ -108,16 +109,20 @@ class WrappedContext(private val c: CanvasRenderingContext2D) {
                           angle: Double = 0)(thunk: => Unit) =
     scaledForImpl(natural, fabricated, -1, angle, thunk)
   
-  def drawText(text: String, where: Pt, height: Double): Unit = {
+  def drawText(text: String, where: Pt, height: Double,
+               align: TextAlign = AlignCentre): Unit = {
     saved {
-      c.textAlign = "center"
+      c.textAlign = align match {
+        case AlignLeft => "left"
+        case AlignCentre => "center"
+        case AlignRight => "right"
+      }
       c.font = "12px Arial"
       
       translate(where)
       scale(height / 10, height / 10)
-      c.beginPath()
+      c.fillStyle = "black"
       c.fillText(text, 0, 4.1)
-      fillWith("black")
     }
   }
 }

@@ -2,12 +2,20 @@ package jellies.client
 
 import org.scalajs.dom.raw.MouseEvent
 import scala.language.implicitConversions
+import org.scalajs.dom.raw.KeyboardEvent
+import org.scalajs.dom
 
 class UserInputManager(val stateManager: GameStateManager) {
   val canvasManager = stateManager.canvasManager
     
   canvasManager.canvas.oncontextmenu = (x => {x.preventDefault(); false})
   canvasManager.canvas.onmousedown = this.onMouseDown
+  dom.document.onkeydown = this.onKeyDown
+  
+  private var keyListeners: Map[Int, Seq[() => Unit]] = Map()
+  addKeyListener('r', () => stateManager.restartLevel())
+  addKeyListener('u', () => stateManager.undoMove())
+  addKeyListener('s', () => stateManager.goToNextLevel())
   
   private implicit def eventToPt(e: MouseEvent) = Pt(e.clientX, e.clientY)
   
@@ -32,5 +40,30 @@ class UserInputManager(val stateManager: GameStateManager) {
     } else {
       true
     }
+  }
+  
+  private def keycodeOf(c: Char) = {
+    require('a' <= c && c <= 'z')
+    c.toInt - 'a'.toInt + 65
+  }
+  
+  def onKeyDown(e: KeyboardEvent): Boolean = {
+    val code = e.keyCode
+    if (e.ctrlKey || e.altKey || e.shiftKey) {
+      true
+    } else if (keyListeners contains code) {
+      for (listener <- keyListeners(code)) {
+        listener()
+      }
+      false
+    } else {
+      true
+    }
+  }
+  
+  def addKeyListener(k: Char, fn: () => Unit) {
+    val code = keycodeOf(k)
+    val crnt = keyListeners.getOrElse(code, Seq())
+    keyListeners += (code -> (crnt :+ fn))
   }
 }

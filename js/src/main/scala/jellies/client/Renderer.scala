@@ -11,6 +11,8 @@ import jellies.game.Perspective
 import jellies.game.Location
 import jellies.layout.Layout
 import jellies.game.Direction
+import jellies.game.LevelMetadata
+import jellies.game.metadata.InformationText
 
 final case class RenderInfo(
     region: Rect,
@@ -34,7 +36,8 @@ class Renderer(layouts: Seq[Layout], index: Int, lambda: Double) {
   
   def apply(
       c: WrappedContext,
-      visibleArea: Rect): Seq[RenderInfo] = {
+      visibleArea: Rect,
+      metadata: Seq[LevelMetadata]): Seq[RenderInfo] = {
     var renderList: List[RenderInfo] = List()
     c.saved {
       c.lineCap = "square"
@@ -64,6 +67,25 @@ class Renderer(layouts: Seq[Layout], index: Int, lambda: Double) {
               angleOf(layout.perspective)) {
             renderList ++:= drawTiles(c, layout)
           }
+        }
+      }
+      
+      c.scaledFor(
+          natural = visibleArea,
+          fabricated = Rect(
+              Pt(1 - visibleArea.width / visibleArea.height, 0),
+              Pt(1, 1))) {
+        val textHeight = 0.04
+        val margin = 0.02
+        val increment = textHeight + 0.01
+        var nextTextPos = margin + textHeight / 2
+        metadata.foreach {
+          case InformationText(message) => {
+            c.drawText(message, Pt(1 - margin, nextTextPos), textHeight,
+                AlignRight)
+            nextTextPos += increment
+          }
+          case _ =>
         }
       }
     }

@@ -77,6 +77,14 @@ final class State private (
   def anyTileOf(j: JellyRef): Location = {
     tiles.find(_._2 == j).get._1
   }
+  
+  val isLevelSolved: Boolean = {
+    val mergeableJellies = jellies
+        .filter(_.colour.isInstanceOf[MergeableColour])
+    val distinctColours = mergeableJellies
+        .map(_.colour.asInstanceOf[MergeableColour])
+    mergeableJellies.size == distinctColours.size
+  }
     
   private[game] def selectByColour(colour: JellyColour): JellyRef = {
     val candidates = jellies.filter(_.colour == colour)

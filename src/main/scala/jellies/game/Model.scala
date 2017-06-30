@@ -14,6 +14,7 @@ final class Model(val levelSpecification: LevelSpecification) {
   }.toMap
   
   def metadata = levelSpecification.metadata
+  def isLevelSolved = currentState.state.isLevelSolved
   
   val playerHandles: Seq[PlayerHandle] =
     levelSpecification.perspectives.indices.toSeq.map(PlayerHandle) 

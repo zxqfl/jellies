@@ -12,12 +12,17 @@ class CanvasManager(val canvas: dom.html.Canvas) {
   private var infoFromLastRender: Seq[RenderInfo] = Seq()
   private var devicePixelRatio: Option[Double] = None
   private var optAnimation: Option[MoveAnimation] = None
+  private var redrawListeners: Seq[() => Unit] = Seq()
   
   checkDimensions()
   
   def setModelView(m: layout.ModelView*) = {
     drawnModel = m
     redraw()
+  }
+  
+  def addRedrawListener(fn: () => Unit) = {
+    redrawListeners :+= fn
   }
   
   def redraw(): Unit = {
@@ -35,11 +40,21 @@ class CanvasManager(val canvas: dom.html.Canvas) {
             .getRenderer(currentTimeSeconds)
       }
     }
+    val metadata = {
+      if (drawnModel.isEmpty) {
+        Seq()
+      } else {
+        drawnModel.head.model.metadata
+      }
+    }
     val results = renderer(
         new WrappedContext(canvas.getContext("2d")
             .asInstanceOf[dom.raw.CanvasRenderingContext2D]),
-        Rect(Pt(0, 0), Pt(canvas.width, canvas.height)))
+        Rect(Pt(0, 0), Pt(canvas.width, canvas.height)),
+        metadata)
     infoFromLastRender = results
+    
+    for (x <- redrawListeners) x()
   }
   
   def animateMove(result: MoveResult) = {
@@ -75,5 +90,19 @@ class CanvasManager(val canvas: dom.html.Canvas) {
     infoFromLastRender.find(_.region contains p)
   }
   
+  def isAnimationRunning = {
+    optAnimation.isDefined && !optAnimation.get.isDone(currentTimeSeconds)
+  }
+  
+  def cancelAnimation() = {
+    optAnimation = None
+  }
+  
   def showMessage(msg: String) = dom.window.alert(msg)
+  
+  checkDaemon()
+  private def checkDaemon() {
+    checkDimensions()
+    dom.window.setTimeout(() => checkDaemon(), 500)
+  }
 }
