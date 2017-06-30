@@ -1,5 +1,8 @@
 package jellies.game
 
+trait LevelMetadata
+
 final case class LevelSpecification(
     initialState: State,
-    perspectives: Seq[Perspective])
+    perspectives: Seq[Perspective],
+    metadata: Seq[LevelMetadata] = Seq())

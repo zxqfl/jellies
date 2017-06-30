@@ -13,6 +13,8 @@ final class Model(val levelSpecification: LevelSpecification) {
     }
   }.toMap
   
+  def metadata = levelSpecification.metadata
+  
   val playerHandles: Seq[PlayerHandle] =
     levelSpecification.perspectives.indices.toSeq.map(PlayerHandle) 
     
