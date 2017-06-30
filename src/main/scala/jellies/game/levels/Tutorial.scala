@@ -69,21 +69,24 @@ object Tutorial {
   }
   object Support extends AbstractLevel with Down {
     val asciiField = """
-      ...11
-      ...22
-      ...XX
-      .....
-      2111.
-      .2.2.
-      .....
-      .....
-      .....
+      X...11
+      X...22
+      X...XX
+      X....X
+      X2111X
+      X.2.2X
+      X....X
+      .....X
+      X....X
       """
     override def metadata = Seq(
       InformationText("A jelly is 'on the ground' if it"),
       InformationText("wouldn't move if gravity were applied to it."),
       InformationText("So the red jelly in the middle is not on the ground"),
-      InformationText("because it's only supported by other jellies."))
+      InformationText("because it's only supported by other jellies."),
+      InformationText("Remember: if a jelly is on the"),
+      InformationText("ground before you move, gravity"),
+      InformationText("will apply to it as part of your move."))
   }
   object FirstTandem extends AbstractLevel with DownRight {
     val asciiField = """

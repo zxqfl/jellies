@@ -19,6 +19,14 @@ final case class RenderInfo(
     location: Location,
     originator: Layout)
 
+final case class FadingMessage(
+    message: String,
+    percentLeft: Double)
+    
+object FadingMessage {
+  val None = FadingMessage("", 0)
+}
+
 // 1 - lambda = weight of layouts(index)
 // lambda = weight of next layout
 // In other words, lambda represents your progress in completing the
@@ -37,7 +45,8 @@ class Renderer(layouts: Seq[Layout], index: Int, lambda: Double) {
   def apply(
       c: WrappedContext,
       visibleArea: Rect,
-      metadata: Seq[LevelMetadata]): Seq[RenderInfo] = {
+      metadata: Seq[LevelMetadata],
+      fadingMessage: FadingMessage): Seq[RenderInfo] = {
     var renderList: List[RenderInfo] = List()
     c.saved {
       c.lineCap = "square"
@@ -87,6 +96,21 @@ class Renderer(layouts: Seq[Layout], index: Int, lambda: Double) {
           }
           case _ =>
         }
+      }
+      c.scaledFor(
+          natural = visibleArea,
+          fabricated = visibleArea.centreAtOrigin / visibleArea.height) {
+        c.globalAlpha *= fadingMessage.percentLeft
+        val textHeight = 0.07
+        c.drawText(fadingMessage.message, Pt(0, 0.15), textHeight, AlignCentre,
+            width => {
+              c.saved {
+                c.globalAlpha *= 0.5
+                val rect = Rect(Pt(0, 0), Pt(width, 14)).centreAtOrigin
+                c.drawRect(rect)
+                c.fillWith("white")
+              }
+            })
       }
     }
     renderList

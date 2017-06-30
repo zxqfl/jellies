@@ -110,7 +110,8 @@ class WrappedContext(private val c: CanvasRenderingContext2D) {
     scaledForImpl(natural, fabricated, -1, angle, thunk)
   
   def drawText(text: String, where: Pt, height: Double,
-               align: TextAlign = AlignCentre): Unit = {
+               align: TextAlign = AlignCentre,
+               f: Double => Unit = (x => Unit)): Unit = {
     saved {
       c.textAlign = align match {
         case AlignLeft => "left"
@@ -121,6 +122,8 @@ class WrappedContext(private val c: CanvasRenderingContext2D) {
       
       translate(where)
       scale(height / 10, height / 10)
+      val metrics = c.measureText(text)
+      f(metrics.width)
       c.fillStyle = "black"
       c.fillText(text, 0, 4.1)
     }

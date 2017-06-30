@@ -13,6 +13,7 @@ class CanvasManager(val canvas: dom.html.Canvas) {
   private var devicePixelRatio: Option[Double] = None
   private var optAnimation: Option[MoveAnimation] = None
   private var redrawListeners: Seq[() => Unit] = Seq()
+  private var fadingMessageInfo: Option[(String, Seconds)] = None
   
   checkDimensions()
   
@@ -26,7 +27,8 @@ class CanvasManager(val canvas: dom.html.Canvas) {
   }
   
   def redraw(): Unit = {
-    if (optAnimation.exists(!_.isDone(currentTimeSeconds))) {
+    if (optAnimation.exists(!_.isDone(currentTimeSeconds)) ||
+        getFadingMessage != FadingMessage.None) {
       dom.window.requestAnimationFrame(x => redraw())
     } else {
       optAnimation = None
@@ -51,7 +53,8 @@ class CanvasManager(val canvas: dom.html.Canvas) {
         new WrappedContext(canvas.getContext("2d")
             .asInstanceOf[dom.raw.CanvasRenderingContext2D]),
         Rect(Pt(0, 0), Pt(canvas.width, canvas.height)),
-        metadata)
+        metadata,
+        getFadingMessage)
     infoFromLastRender = results
     
     for (x <- redrawListeners) x()
@@ -67,6 +70,22 @@ class CanvasManager(val canvas: dom.html.Canvas) {
   private def currentTimeSeconds =
     Seconds(System.currentTimeMillis() / 1000.0)
   
+  private def getFadingMessage: FadingMessage = {
+    val fadeTime: Double = 1
+    if (fadingMessageInfo.isDefined) {
+      val (message, showTime) = fadingMessageInfo.get
+      val timeSince = currentTimeSeconds.s - showTime.s
+      if (timeSince < 0 || timeSince >= fadeTime) {
+        FadingMessage.None
+      } else {
+        val alpha = (1 - timeSince / fadeTime) * 1.8
+        FadingMessage(message, Math.min(1, alpha))
+      }
+    } else {
+      FadingMessage.None
+    }
+  }
+    
   def checkDimensions(): Unit = {
     val ratio: Double = dom.window.devicePixelRatio
     devicePixelRatio = Some(ratio)
@@ -98,7 +117,10 @@ class CanvasManager(val canvas: dom.html.Canvas) {
     optAnimation = None
   }
   
-  def showMessage(msg: String) = dom.window.alert(msg)
+  def showMessage(msg: String) = {
+    fadingMessageInfo = Some(msg, currentTimeSeconds)
+    redraw()
+  }
   
   checkDaemon()
   private def checkDaemon() {

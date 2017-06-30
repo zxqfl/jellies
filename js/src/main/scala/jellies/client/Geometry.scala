@@ -58,6 +58,8 @@ final case class Rect(topLeft: Pt, bottomRight: Pt) extends Transformable[Rect] 
   def contract(amount: Double) = expand(-amount)
       
   def centre: Pt = (topLeft + bottomRight) / 2
+  
+  def centreAtOrigin = this - centre
       
   def + (p: Pt) = Rect(topLeft + p, bottomRight + p)
   def * (s: Double) = Rect(topLeft * s, bottomRight * s)

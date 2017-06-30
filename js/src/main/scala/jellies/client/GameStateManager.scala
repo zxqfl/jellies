@@ -7,6 +7,8 @@ import jellies.game.Location
 import jellies.game.Direction
 import jellies.layout.Layout
 import jellies.game.metadata.FollowedBy
+import jellies.game.DirectionBlocked
+import jellies.game.JellyPermissionFailure
 
 class GameStateManager(val canvasManager: CanvasManager) {
   private var optModel: Option[Model] = None
@@ -59,7 +61,13 @@ class GameStateManager(val canvasManager: CanvasManager) {
           model.playerWithPerspective(layout.perspective),
           location, direction)
       result match {
-        case Left(x) => canvasManager.showMessage(x.toString)
+        case Left(DirectionBlocked) => {
+          canvasManager.showMessage("That direction is blocked.")
+        }
+        case Left(JellyPermissionFailure) => {
+          canvasManager.showMessage("That jelly is in the air.")
+        }
+        case Left(_) =>
         case Right(result) => {
           canvasManager.animateMove(result)
           onModelUpdate()
@@ -92,6 +100,7 @@ class GameStateManager(val canvasManager: CanvasManager) {
     if (optModel.isDefined && optModel.get.isLevelSolved &&
         !canvasManager.isAnimationRunning) {
       goToNextLevel()
+      canvasManager.showMessage("Level complete!")
     }
   }
 }
