@@ -427,11 +427,11 @@ final class State private (
       var result: Seq[MoveEffect] = Seq(initialEffect)
       while (!fallSet.isEmpty) {
         result ++= applyGravity(fallSet, m.perspective)
-        result ++= mergeWherePossible()
         val unaffected = findPermittedJellies(m.perspective)
         fallSet = fallSet map representative
         fallSet = updateFallSet(fallSet, unaffected, m.perspective)
       }
+      result ++= mergeWherePossible()
       result
     }
     
