@@ -7,6 +7,7 @@ import org.scalajs.dom
 import org.scalajs.dom.raw.TouchEvent
 import org.scalajs.dom.raw.Touch
 import scala.util.control.NonFatal
+import scalajs.js
 
 class UserInputManager(val stateManager: GameStateManager) {
   val canvasManager = stateManager.canvasManager

@@ -8,6 +8,9 @@
     <div id="main"></div>
     <script type="text/javascript" src="./target/scala-2.12/jellies-fastopt.js"></script>
     <script type="text/javascript">
+      window.addEventListener("touchmove",
+          (function(x) { x.preventDefault(); return false; }),
+          {passive: false});
       jellies.client.EntryPoint().main();
     </script>
   </body>
