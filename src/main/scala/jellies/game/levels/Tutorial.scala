@@ -133,9 +133,9 @@ object Tutorial {
   }
   object Inversion extends AbstractLevel with DownUp {
     val asciiField = """
-      1.1.1.XXX
+      1.2.1.XXX
       XXXXX.XXX
-      ...22.XXX
+      2...2.XXX
       X22..XXXX
       XX.XXXXXX
       X...1.XXX
