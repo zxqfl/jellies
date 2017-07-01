@@ -12,8 +12,6 @@ import scalajs.js
 class UserInputManager(val stateManager: GameStateManager) {
   val canvasManager = stateManager.canvasManager
     
-//  ignoreError(
-//      canvasManager.canvas.oncontextmenu = (x => {x.preventDefault(); false}))
   ignoreError(canvasManager.canvas.onmousedown = this.onMouseDown)
   ignoreError(canvasManager.canvas.onmousemove = this.onMouseMove)
   ignoreError(dom.document.onkeydown = this.onKeyDown)

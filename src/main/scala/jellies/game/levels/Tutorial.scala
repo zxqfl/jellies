@@ -17,8 +17,10 @@ object Tutorial {
       """
     override def metadata = Seq(
       InformationText("Hi! The coloured blocks are jellies."),
-      InformationText("You can move the jellies by clicking on"),
-      InformationText("them with the left or right mouse button."),
+      InformationText("You can move the jellies left or right"),
+      InformationText("by clicking on them."),
+      InformationText("If you are on a touch device, you can"),
+      InformationText("swipe the jellies left or right."),
       InformationText("When jellies of the same colour touch, they merge."),
       InformationText("The goal is to merge all the red jellies"),
       InformationText("together and all the green jellies together."))

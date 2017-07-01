@@ -26,6 +26,8 @@ final class State private (
 
   override def toString = State.toASCIIArt(this)
   
+  override def hashCode = objects.hashCode
+  
   sealed trait Tile
   
   case object OpenSpace extends Tile

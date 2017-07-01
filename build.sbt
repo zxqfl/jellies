@@ -1,5 +1,6 @@
 name := "jellies"
 scalaVersion in ThisBuild := "2.12.0"
+testOptions in Test += Tests.Argument("-P")
 
 lazy val commonSettings = Seq(
   name := "jellies",

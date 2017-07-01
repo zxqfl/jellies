@@ -113,4 +113,28 @@ private class SimpleStateTest extends FunSuite with Matchers {
         """)
     newState.jellies.size shouldEqual 3    
   }
+  
+  test("hash code") {
+    val s1 = 
+    """
+    ......
+    .11...
+    .XX1..
+    ...X1.
+    ....X.
+    """
+    val s2 = 
+    """
+    ......
+    .X1...
+    .XX1..
+    ...X1.
+    ....X.
+    """
+    val a = State.fromASCIIArt(s1).hashCode
+    val b = State.fromASCIIArt(s1).hashCode
+    val c = State.fromASCIIArt(s2).hashCode
+    a should be (b)
+    a should not be (c)
+  }
 }
