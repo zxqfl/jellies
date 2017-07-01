@@ -9,7 +9,7 @@ private class TutorialSolveTest extends FunSuite with Matchers {
       val solver = new Solver(level)
       solver.solve shouldBe a [solver.Solution]
       val solution = solver.solve.asInstanceOf[solver.Solution] 
-      info(s"solution has length ${solution.states.length}")
+      info(s"${solution.states.length - 1} moves")
     }
   }
 }

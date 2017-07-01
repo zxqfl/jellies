@@ -119,6 +119,20 @@ object Tutorial {
       """
     override def metadata = Seq()
   }
+  object FlippedTandem extends AbstractLevel with DownLeft {
+    val asciiField = """
+      .....1..
+      .....X..
+      ........
+      .....1..
+      2X..2...
+      ........
+      XXXX.X..
+      XXXX2XX.
+      XXX222X.
+      """
+    override def metadata = Seq()
+  }
   
   val levels: Seq[LevelSpecification] =
     LevelSequence(
@@ -128,5 +142,6 @@ object Tutorial {
       GravityPropagation,
       Support,
       FirstTandem,
-      SecondTandem)
+      SecondTandem,
+      FlippedTandem)
 }

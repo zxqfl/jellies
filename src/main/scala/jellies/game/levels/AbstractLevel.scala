@@ -25,6 +25,10 @@ trait DownRight {
   val perspectives = Seq(Perspective(Direction(0, -1)),
                          Perspective(Direction(1, 0)))
 }
+trait DownLeft {
+  val perspectives = Seq(Perspective(Direction(0, -1)),
+                         Perspective(Direction(-1, 0)))
+}
 
 object AbstractLevel {
   implicit def levelToSpec(l: AbstractLevel) = l.spec
