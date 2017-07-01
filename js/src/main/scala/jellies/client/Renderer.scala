@@ -34,6 +34,9 @@ object FadingMessage {
 class Renderer(layouts: Seq[Layout], index: Int, lambda: Double) {
   require(0 <= lambda && lambda <= 1)
   
+  val groundAlpha: Double = 0.6
+  val airAlpha: Double = 0.05
+  
   val emptyColour = Colour("#ffffff")
   val wallColour = Colour("#cccccc")
   val colourOf: Map[JellyColour, Colour] =
@@ -125,9 +128,9 @@ class Renderer(layouts: Seq[Layout], index: Int, lambda: Double) {
       layout: Layout): List[RenderInfo] = {
     val result = layout.tiles(index).map {
       case layout.Wall(loc, sameInfo) => {
-        drawTile(c, loc, layout, Pt(loc), wallColour, sameInfo)
+        drawTile(c, loc, layout, Pt(loc), wallColour, sameInfo, 1)
       }
-      case j @ layout.Jelly(loc, sameInfo, ref, _) => {
+      case j @ layout.Jelly(loc, sameInfo, ref, _, groundNow, groundNext) => {
         val optDir: Option[Direction] = layout.directions(index).get(ref)
         val pt: Pt = optDir match {
           case None => Pt(loc)
@@ -137,7 +140,10 @@ class Renderer(layouts: Seq[Layout], index: Int, lambda: Double) {
             a * (1 - lambda) + b * lambda
           }
         }
-        drawTile(c, loc, layout, pt, colourOf(ref.colour), sameInfo)
+        def alphaOf(b: Boolean) = if (b) groundAlpha else airAlpha
+        val currentAlpha =
+          alphaOf(groundNow) * (1 - lambda) + alphaOf(groundNext) * lambda 
+        drawTile(c, loc, layout, pt, colourOf(ref.colour), sameInfo, currentAlpha)
       }
     }
     result.toList
@@ -151,7 +157,8 @@ class Renderer(layouts: Seq[Layout], index: Int, lambda: Double) {
       layout: Layout,
       point: Pt,
       colour: Colour,
-      sameInfo: SameInfo = allSame): RenderInfo = {
+      sameInfo: SameInfo,
+      innerAlpha: Double): RenderInfo = {
     c.saved {
       c.translate(point)
       c.rotate(-angleOf(layout.perspective)) // this is sketchy
@@ -162,7 +169,7 @@ class Renderer(layouts: Seq[Layout], index: Int, lambda: Double) {
           c.transform(rect.bottomLeft),
           c.transform(rect.bottomRight))
       c.saved {
-        c.globalAlpha = 0.6
+        c.globalAlpha *= innerAlpha
         c.drawRect(rect.expand(0.001))
         c.fillWith(colour)
       }

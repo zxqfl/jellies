@@ -231,7 +231,7 @@ final class State private (
     }
     
     private def inDirection(locs: Set[Location], direction: Direction) =
-      locs.map(_.translate(direction))
+      locs.map(_ + direction)
     
     private def applyGravity(
         downwardCandidates: Set[JellyRef],

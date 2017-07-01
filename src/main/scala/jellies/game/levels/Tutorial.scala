@@ -63,8 +63,8 @@ object Tutorial {
       X.......
       """
     override def metadata = Seq(
-      InformationText("If a jelly is on the ground before you move,"),
-      InformationText("it will be on the ground after you move."),
+      InformationText("If a jelly is connected to the ground before you move,"),
+      InformationText("it will be connected to the ground after you move."),
       InformationText("Sometimes this means it will bring other jellies down with it."))
   }
   object Support extends AbstractLevel with Down {
@@ -80,13 +80,14 @@ object Tutorial {
       X....X
       """
     override def metadata = Seq(
-      InformationText("A jelly is 'on the ground' if it"),
+      InformationText("A jelly is 'connected to the ground' if it"),
       InformationText("wouldn't move if gravity were applied to it."),
-      InformationText("So the red jelly in the middle is not on the ground"),
-      InformationText("because it's only supported by other jellies."),
-      InformationText("Remember: if a jelly is on the"),
-      InformationText("ground before you move, gravity"),
-      InformationText("will apply to it as part of your move."))
+      InformationText("So the red jelly in the middle is not connected to the"),
+      InformationText("ground because it's only supported by other jellies."))
+      
+//      InformationText("Remember: if a jelly is on the"),
+//      InformationText("ground before you move, gravity"),
+//      InformationText("will apply to it as part of your move."))
   }
   object FirstTandem extends AbstractLevel with DownRight {
     val asciiField = """
