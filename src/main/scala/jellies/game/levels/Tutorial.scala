@@ -133,6 +133,18 @@ object Tutorial {
   }
   object Inversion extends AbstractLevel with DownUp {
     val asciiField = """
+      XXXXXXXXX
+      XXXXXXXXX
+      X....1XXX
+      X22..XXXX
+      XX.XXXXXX
+      X...1.XXX
+      X..1..XXX
+      X..1.2XXX
+      """
+  }
+  object InversionComplex extends AbstractLevel with DownUp {
+    val asciiField = """
       1.2.1.XXX
       XXXXX.XXX
       2...2.XXX
@@ -141,6 +153,21 @@ object Tutorial {
       X...1.XXX
       X..1..XXX
       X..1.2XXX
+      """
+  }
+  object Stars extends AbstractLevel with DownRight {
+    val asciiField = """
+      XXXXXXXXXXX
+      X.........X
+      X....X....X
+      X.........X
+      X...1.....X
+      X2X..1..X.X
+      X...1.1...X
+      X.........X
+      X....X....X
+      X....2....X
+      XXXXXXXXXXX
       """
   }
   
@@ -154,5 +181,6 @@ object Tutorial {
       FirstTandem,
       SecondTandem,
       FlippedTandem,
-      Inversion)
+      Inversion,
+      Stars)
 }
