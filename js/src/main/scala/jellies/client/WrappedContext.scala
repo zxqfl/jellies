@@ -5,7 +5,7 @@ import org.scalajs.dom.raw.CanvasRenderingContext2D
 class WrappedContext(private val c: CanvasRenderingContext2D) {
   private var transformStack: List[Transform] = List(new Transform)
   
-  def globalAlpha = c.globalAlpha
+  def globalAlpha: Double = c.globalAlpha
   def globalAlpha_= (x: Double) = (c.globalAlpha = x)
   
   def lineCap = c.lineCap
