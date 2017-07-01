@@ -65,7 +65,7 @@ final class Model(val levelSpecification: LevelSpecification) {
     while (canUndo) {
       undo()
     }
-    clearRedo()
+//    clearRedo()
   }
   
   private def modifyState(s: State): Unit =

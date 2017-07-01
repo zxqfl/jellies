@@ -13,12 +13,16 @@ import jellies.layout.Layout
 import jellies.game.Direction
 import jellies.game.LevelMetadata
 import jellies.game.metadata.InformationText
+import jellies.game.BoundingBox
 
 final case class RenderInfo(
     region: Rect,
     location: Location,
-    originator: Layout)
+    originator: Layout,
+    isRightSide: Boolean)
 
+final case class PartialRenderInfo(region: Rect, isRightSide: Boolean)
+    
 final case class FadingMessage(
     message: String,
     percentLeft: Double)
@@ -33,8 +37,9 @@ object FadingMessage {
 // current animation.
 class Renderer(layouts: Seq[Layout], index: Int, lambda: Double) {
   require(0 <= lambda && lambda <= 1)
-  
-  val groundAlpha: Double = 0.6
+
+  val highlightAlpha: Double = 0.45
+  val groundAlpha: Double = 0.7
   val airAlpha: Double = 0.05
   
   val emptyColour = Colour("#ffffff")
@@ -49,7 +54,8 @@ class Renderer(layouts: Seq[Layout], index: Int, lambda: Double) {
       c: WrappedContext,
       visibleArea: Rect,
       metadata: Seq[LevelMetadata],
-      fadingMessage: FadingMessage): Seq[RenderInfo] = {
+      fadingMessage: FadingMessage,
+      mousePos: Pt): Seq[RenderInfo] = {
     var renderList: List[RenderInfo] = List()
     c.saved {
       c.lineCap = "square"
@@ -77,7 +83,7 @@ class Renderer(layouts: Seq[Layout], index: Int, lambda: Double) {
               natural = currentArea,
               fabricated = layout.boundingBox.expand(.5),
               angleOf(layout.perspective)) {
-            renderList ++:= drawTiles(c, layout)
+            renderList ++:= drawTiles(c, layout, mousePos)
           }
         }
       }
@@ -125,40 +131,97 @@ class Renderer(layouts: Seq[Layout], index: Int, lambda: Double) {
   
   private def drawTiles(
       c: WrappedContext,
-      layout: Layout): List[RenderInfo] = {
-    val result = layout.tiles(index).map {
-      case layout.Wall(loc, sameInfo) => {
-        drawTile(c, loc, layout, Pt(loc), wallColour, sameInfo, groundAlpha)
-      }
-      case j @ layout.Jelly(loc, sameInfo, ref, _, groundNow, groundNext) => {
-        val optDir: Option[Direction] = layout.directions(index).get(ref)
-        val pt: Pt = optDir match {
-          case None => Pt(loc)
-          case Some(dir) => {
-            val a = Pt(loc)
-            val b = Pt(loc + dir)
-            a * (1 - lambda) + b * lambda
-          }
+      layout: Layout,
+      mousePos: Pt): List[RenderInfo] = {
+        
+    def getPt(j: layout.Jelly) = {
+      layout.directions(index).get(j.refA) match {
+        case None => Pt(j.location)
+        case Some(dir) => {
+          val a = Pt(j.location)
+          val b = Pt(j.location + dir)
+          a * (1 - lambda) + b * lambda
         }
-        def alphaOf(b: Boolean) = if (b) groundAlpha else airAlpha
-        val currentAlpha =
-          alphaOf(groundNow) * (1 - lambda) + alphaOf(groundNext) * lambda 
-        drawTile(c, loc, layout, pt, colourOf(ref.colour), sameInfo, currentAlpha)
+      }        
+    }
+    def alphaOf(onGround: Boolean, highlighted: Boolean) = {
+      if (onGround && highlighted) {
+        highlightAlpha
+      } else if (onGround) {
+        groundAlpha
+      } else {
+        airAlpha
       }
     }
-    result.toList
+    def getAlpha(j: layout.Jelly, highlighted: Boolean) = {
+      alphaOf(j.onGroundNow, highlighted) * (1 - lambda) +
+      alphaOf(j.onGroundNext, highlighted) * lambda
+    }
+    def noHighlight(j: layout.Jelly): Boolean = {
+      layout.hasMovesLeft(j, index)
+    }
+    
+    var walls: List[layout.Wall] = Nil
+    var jellies: List[layout.Jelly] = Nil
+    for (tile <- layout.tiles(index)) {
+      tile match {
+        case x: layout.Wall => walls +:= x
+        case x: layout.Jelly => jellies +:= x
+      }
+    }
+    for (w <- walls) {
+      drawTile(c, w.location, layout, Pt(w.location),
+          wallColour, w.sameInfo, (groundAlpha, groundAlpha), (false, false))
+    }
+    val infos = for {
+      (refB, js) <- jellies.groupBy(_.refB)
+    } yield {
+//      val boundingBox = new BoundingBox(
+//          layout.moveInfo.resultingState.jellyParts(refB).toSeq: _*)
+      val boundingBox = layout.perspective(
+          new BoundingBox(js.map(_.location).toSeq: _*))
+      def getForcedSide(j: layout.Jelly) = {
+        val loc = layout.perspective(j.location)
+        val leftDist = loc.x - boundingBox.left
+        val rightDist = boundingBox.right - loc.x
+        (leftDist < rightDist, rightDist < leftDist)
+      }
+      val (leftPartial, rightPartial) = js
+          .flatMap { j =>
+            if (noHighlight(j))
+              List()
+            else
+              drawTilePartial(c, j.location, layout, getPt(j),
+                  getForcedSide(j))
+          }
+          .partition(!_.isRightSide)
+      val highlightLeft = leftPartial.exists(_.region contains mousePos)
+      val highlightRight = rightPartial.exists(_.region contains mousePos) &&
+                           !highlightLeft
+      js.flatMap { j =>
+        val (forceLeft, forceRight) = getForcedSide(j)
+        val isThisHighlightLeft =
+          (highlightLeft && !forceRight) ||
+          (highlightRight && forceRight)
+        val isThisHighlightRight =
+          (highlightRight && !forceLeft) ||
+          (highlightLeft && forceLeft)
+        drawTile(c, j.location, layout, getPt(j), colourOf(j.refA.colour),
+            j.sameInfo,
+            (getAlpha(j, isThisHighlightLeft),
+             getAlpha(j, isThisHighlightRight)),
+            getForcedSide(j))
+      }
+    }
+    infos.flatten.toList
   }
   
-  private val allSame = SameInfo(true, true, true, true) 
-  
-  private def drawTile(
+  private def drawTilePartial(
       c: WrappedContext,
       location: Location,
       layout: Layout,
       point: Pt,
-      colour: Colour,
-      sameInfo: SameInfo,
-      innerAlpha: Double): RenderInfo = {
+      force: (Boolean, Boolean)): List[PartialRenderInfo] = {
     c.saved {
       c.translate(point)
       c.rotate(-angleOf(layout.perspective)) // this is sketchy
@@ -168,9 +231,46 @@ class Renderer(layouts: Seq[Layout], index: Int, lambda: Double) {
           c.transform(rect.topRight),
           c.transform(rect.bottomLeft),
           c.transform(rect.bottomRight))
+      val (forceLeft, forceRight) = force
+      assert(!(forceLeft && forceRight))
+      if (forceLeft) {
+        List(PartialRenderInfo(screenRegion, false))       
+      } else if (forceRight) {
+        List(PartialRenderInfo(screenRegion, true))
+      } else {
+        List(PartialRenderInfo(screenRegion.leftHalf, false),
+             PartialRenderInfo(screenRegion.rightHalf,true))
+      }
+    }
+  }
+  
+  private def drawTile(
+      c: WrappedContext,
+      location: Location,
+      layout: Layout,
+      point: Pt,
+      colour: Colour,
+      sameInfo: SameInfo,
+      innerAlpha: (Double, Double),
+      force: (Boolean, Boolean)): List[RenderInfo] = {
+    c.saved {
+      c.translate(point)
+      c.rotate(-angleOf(layout.perspective)) // this is sketchy
+      val rect = Pt(0, 0).expand(.5)
+      val screenRegion = Rect.bound(
+          c.transform(rect.topLeft),
+          c.transform(rect.topRight),
+          c.transform(rect.bottomLeft),
+          c.transform(rect.bottomRight))
+      val toDrawInner = rect.expand(0.001)
       c.saved {
-        c.globalAlpha *= innerAlpha
-        c.drawRect(rect.expand(0.001))
+        c.globalAlpha *= innerAlpha._1
+        c.drawRect(toDrawInner.leftHalf)
+        c.fillWith(colour)
+      }
+      c.saved {
+        c.globalAlpha *= innerAlpha._2
+        c.drawRect(toDrawInner.rightHalf)
         c.fillWith(colour)
       }
       val radius = 0.04
@@ -198,7 +298,16 @@ class Renderer(layouts: Seq[Layout], index: Int, lambda: Double) {
         line(smallRect.bottomLeft, smallRect.topLeft,
              sameInfo.upSame, sameInfo.downSame)
       }
-      RenderInfo(screenRegion, location, layout)
+      val (forceLeft, forceRight) = force
+      assert(!(forceLeft && forceRight))
+      if (forceLeft) {
+        List(RenderInfo(screenRegion, location, layout, false))       
+      } else if (forceRight) {
+        List(RenderInfo(screenRegion, location, layout, true))
+      } else {
+        List(RenderInfo(screenRegion.leftHalf, location, layout, false),
+             RenderInfo(screenRegion.rightHalf, location, layout, true))
+      }
     }
   }
 }

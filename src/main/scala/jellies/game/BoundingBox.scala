@@ -24,4 +24,9 @@ final class BoundingBox private (
       x <- left to right
     } yield Location(x, y)
   }
+  
+  def bottomLeft = Location(left, bottom)
+  def bottomRight = Location(right, bottom)
+  def topLeft = Location(left, top)
+  def topRight = Location(right, top)
 }

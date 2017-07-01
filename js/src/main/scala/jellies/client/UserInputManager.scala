@@ -11,9 +11,10 @@ import scala.util.control.NonFatal
 class UserInputManager(val stateManager: GameStateManager) {
   val canvasManager = stateManager.canvasManager
     
-  ignoreError(
-      canvasManager.canvas.oncontextmenu = (x => {x.preventDefault(); false}))
+//  ignoreError(
+//      canvasManager.canvas.oncontextmenu = (x => {x.preventDefault(); false}))
   ignoreError(canvasManager.canvas.onmousedown = this.onMouseDown)
+  ignoreError(canvasManager.canvas.onmousemove = this.onMouseMove)
   ignoreError(dom.document.onkeydown = this.onKeyDown)
   ignoreError(
       canvasManager.canvas.addEventListener("touchstart", onTouchStart, true))
@@ -37,13 +38,13 @@ class UserInputManager(val stateManager: GameStateManager) {
   val rightMouseButton = 2
   
   def onMouseDown(e: MouseEvent): Boolean = {
-    if (e.button == leftMouseButton || e.button == rightMouseButton) {
+    if (e.button == leftMouseButton) {
       for (info <- canvasManager.interpret(e)) {
         val dir = {
-          if (e.button == leftMouseButton)
-            info.originator.perspective.left
-          else
+          if (info.isRightSide)
             info.originator.perspective.right
+          else
+            info.originator.perspective.left
         }
         stateManager.submitMoveAttempt(
             info.originator,
@@ -54,6 +55,11 @@ class UserInputManager(val stateManager: GameStateManager) {
     } else {
       true
     }
+  }
+  
+  private def onMouseMove(e: MouseEvent): Boolean = {
+    canvasManager.updateMousePos(e)
+    true
   }
   
   private def keycodeOf(c: Char) = {

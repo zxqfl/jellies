@@ -14,6 +14,8 @@ class CanvasManager(val canvas: dom.html.Canvas) {
   private var optAnimation: Option[MoveAnimation] = None
   private var redrawListeners: Seq[() => Unit] = Seq()
   private var fadingMessageInfo: Option[(String, Seconds)] = None
+  private var ongoingAnimationRequests: List[Int] = Nil
+  private var mousePos: Pt = Pt(-1e9, -1e9)
   
   checkDimensions()
   
@@ -26,10 +28,20 @@ class CanvasManager(val canvas: dom.html.Canvas) {
     redrawListeners :+= fn
   }
   
+  def requestRedraw(): Unit = {
+    ongoingAnimationRequests :+=
+      dom.window.requestAnimationFrame(_ => redraw())
+  }
+  
   def redraw(): Unit = {
+    for (request <- ongoingAnimationRequests) {
+      dom.window.cancelAnimationFrame(request)
+    }
+    ongoingAnimationRequests = Nil
+    
     if (optAnimation.exists(!_.isDone(currentTimeSeconds)) ||
         getFadingMessage != FadingMessage.None) {
-      dom.window.requestAnimationFrame(x => redraw())
+      requestRedraw()
     } else {
       optAnimation = None
     }
@@ -54,7 +66,8 @@ class CanvasManager(val canvas: dom.html.Canvas) {
             .asInstanceOf[dom.raw.CanvasRenderingContext2D]),
         Rect(Pt(0, 0), Pt(canvas.width, canvas.height)),
         metadata,
-        getFadingMessage)
+        getFadingMessage,
+        mousePos)
     infoFromLastRender = results
     
     for (x <- redrawListeners) x()
@@ -104,8 +117,12 @@ class CanvasManager(val canvas: dom.html.Canvas) {
     }
   }
   
+  private def transformByRatio(p: Pt): Pt = {
+    p * devicePixelRatio.getOrElse(1)
+  }
+  
   def interpret(pParam: Pt): Option[RenderInfo] = {
-    val p = pParam * devicePixelRatio.getOrElse(1)
+    val p = transformByRatio(pParam)
     infoFromLastRender.find(_.region contains p)
   }
   
@@ -123,8 +140,13 @@ class CanvasManager(val canvas: dom.html.Canvas) {
   }
   
   checkDaemon()
-  private def checkDaemon() {
+  private def checkDaemon(): Unit = {
     checkDimensions()
     dom.window.setTimeout(() => checkDaemon(), 500)
+  }
+  
+  def updateMousePos(p: Pt) = {
+    mousePos = transformByRatio(p)
+    requestRedraw()
   }
 }

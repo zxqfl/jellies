@@ -94,6 +94,12 @@ class Layout(val moveInfo: MoveResult, val perspective: Perspective) {
     maps :+ Map()
   }
   
+  def hasMovesLeft(j: Jelly, index: Int): Boolean = {
+    moveInfo.effects
+        .drop(index)
+        .exists(_.jelliesAffected contains j.refA)
+  }
+  
   private case class InterimState(
       locMap: Map[Location, moveInfo.initialState.JellyRef],
       jellyMap: Map[moveInfo.initialState.JellyRef,
