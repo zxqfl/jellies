@@ -29,7 +29,7 @@ class UserInputManager(val stateManager: GameStateManager) {
   ignoreError(addKeyListener('s', () => stateManager.goToNextLevel()))
   
   private var touchInfo: Option[Pt] = None
-  private val touchMoveThreshold: Double = 100
+  private val touchMoveThreshold: Double = 170
   
   private implicit def eventToPt(e: MouseEvent) = Pt(e.clientX, e.clientY)
   private implicit def eventToPt(e: Touch) = Pt(e.clientX, e.clientY)
@@ -108,8 +108,9 @@ class UserInputManager(val stateManager: GameStateManager) {
     } else if (touchInfo.isDefined) {
       val origin = touchInfo.get
       val point: Pt = e.touches(0)
-      val xDiff = Math.abs(origin.x - point.x)
-      val yDiff = Math.abs(origin.y - point.y)
+      val ratio = canvasManager.getDevicePixelRatio
+      val xDiff = Math.abs(origin.x - point.x) * ratio
+      val yDiff = Math.abs(origin.y - point.y) * ratio
       if (xDiff >= touchMoveThreshold || yDiff >= touchMoveThreshold) {
         if (yDiff > xDiff) {
           clearTouchInfo()
@@ -132,6 +133,8 @@ class UserInputManager(val stateManager: GameStateManager) {
           false
         }
       } else {
+        e.preventDefault()
+        e.stopPropagation()
         false
       }
     } else {

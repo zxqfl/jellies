@@ -117,8 +117,10 @@ class CanvasManager(val canvas: dom.html.Canvas) {
     }
   }
   
+  def getDevicePixelRatio: Double = devicePixelRatio.getOrElse(1) 
+  
   private def transformByRatio(p: Pt): Pt = {
-    p * devicePixelRatio.getOrElse(1)
+    p * getDevicePixelRatio
   }
   
   def interpret(pParam: Pt): Option[RenderInfo] = {
