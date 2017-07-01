@@ -128,7 +128,7 @@ class Renderer(layouts: Seq[Layout], index: Int, lambda: Double) {
       layout: Layout): List[RenderInfo] = {
     val result = layout.tiles(index).map {
       case layout.Wall(loc, sameInfo) => {
-        drawTile(c, loc, layout, Pt(loc), wallColour, sameInfo, 1)
+        drawTile(c, loc, layout, Pt(loc), wallColour, sameInfo, groundAlpha)
       }
       case j @ layout.Jelly(loc, sameInfo, ref, _, groundNow, groundNext) => {
         val optDir: Option[Direction] = layout.directions(index).get(ref)
