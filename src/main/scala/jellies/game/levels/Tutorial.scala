@@ -3,6 +3,7 @@ package jellies.game.levels
 import jellies.game.metadata.InformationText
 import jellies.game.LevelSpecification
 import AbstractLevel._
+import jellies.game.metadata.NoAutoSolve
 
 object Tutorial {
   object MovementLevel extends AbstractLevel with Down {
@@ -164,10 +165,35 @@ object Tutorial {
       X...1.....X
       X2X..1..X.X
       X...1.1...X
-      X.........X
-      X....X....X
       X....2....X
+      X....X....X
+      X.........X
       XXXXXXXXXXX
+      """
+  }
+  object FourPart extends AbstractLevel with DownRight {
+    val asciiField = """
+      ...X1..
+      .2.....
+      111X1.2
+      X.XXX.2
+      ..1X.2X
+      ....212
+      1.1XX22
+      """
+    override def metadata = Seq(NoAutoSolve)
+  }
+  object Halves extends AbstractLevel with DownUp {
+    val asciiField = """
+      .......
+      .......
+      .......
+      21...12
+      XXX.XXX
+      21...12
+      .......
+      .......
+      .......
       """
   }
   
@@ -179,8 +205,10 @@ object Tutorial {
       GravityPropagation,
       Support,
       FirstTandem,
+      Halves,
       SecondTandem,
       FlippedTandem,
       Inversion,
-      Stars)
+      Stars,
+      FourPart)
 }
