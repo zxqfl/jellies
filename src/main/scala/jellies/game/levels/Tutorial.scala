@@ -160,17 +160,14 @@ object Tutorial {
   }
   object Stars extends AbstractLevel with DownRight {
     val asciiField = """
-      XXXXXXXXXXX
-      X.........X
-      X....X....X
-      X.........X
-      X...1.....X
-      X2X..1..X.X
-      X...1.1...X
-      X....2....X
-      X....X....X
-      X.........X
-      XXXXXXXXXXX
+      XXXXXXXXXX
+      X..1.....X
+      X2X.1..X.X
+      X..1.1...X
+      X...2....X
+      X...X....X
+      X........X
+      XXXXXXXXXX
       """
   }
   object FourPart extends AbstractLevel with DownRight {
@@ -201,19 +198,15 @@ object Tutorial {
   }
   object Hook extends AbstractLevel with DownUp {
     val asciiField = """
-      ....2..22
-      ....2..X2
-      ....2..XX
-      ....2..XX
-      ....2..XX
-      ..22...XX
-      ..1.1..XX
-      XXXXXX.XX
-      1.2.1..XX
-      .......XX
-      .......XX
+      ...22
+      ...X2
+      1.1..
+      XXXX.
+      2121.
+      .....
+      .....
       """
-    override def metadata = Seq(NoAutoSolve)
+//    override def metadata = Seq(NoAutoSolve)
   }
   object Checkerboard extends AbstractLevel with DownRight {
     val asciiField = """
@@ -237,6 +230,5 @@ object Tutorial {
       Inversion,
       Stars,
       Checkerboard,
-      Hook,
-      FourPart)
+      Hook)
 }

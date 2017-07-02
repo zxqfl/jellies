@@ -137,10 +137,12 @@ class Renderer(layouts: Seq[Layout], index: Int, lambda: Double) {
       val menuDrawRegion = menuRegion.topLeftAtOrigin / menuRegion.height
       c.scaledFor(
           natural = menuRegion,
-          fabricated = menuDrawRegion) {
+          fabricated = menuDrawRegion,
+          clip = false) {
         val textHeight = 0.04
         var menuList: List[ArbitraryActionInfo] = Nil
-        for ((button, index) <- menuButtons.filter(_.isVisible).zipWithIndex) {
+        for ((button, index) <- menuButtons.zipWithIndex
+                                           .filter(_._1.isVisible)) {
           val x = menuDrawRegion.width * 0.1
           val y = (textHeight * 1.5) * index + 0.04
           c.saved {

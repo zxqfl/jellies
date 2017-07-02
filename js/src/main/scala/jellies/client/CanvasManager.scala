@@ -157,4 +157,5 @@ class CanvasManager(val canvas: dom.html.Canvas) {
     mousePos = transformByRatio(p)
     requestRedraw()
   }
+  def clearMousePos() = updateMousePos(Pt(-1e9, -1e9))
 }

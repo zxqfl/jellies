@@ -44,6 +44,7 @@ class UserInputManager(val stateManager: GameStateManager) {
         def onClick() = stateManager.redoMove()
     }
   }
+  canvasManager.addMenuButton(DummyMenuButton)
   canvasManager.addMenuButton {
     new MenuButton {
         val text = "restart"
@@ -52,12 +53,21 @@ class UserInputManager(val stateManager: GameStateManager) {
         def onClick() = stateManager.restartLevel()
     }
   }
+  canvasManager.addMenuButton(DummyMenuButton)
   canvasManager.addMenuButton {
     new MenuButton {
         val text = "next level"
         def isVisible = true
         def isClickable = stateManager.canGoToNextLevel
         def onClick() = stateManager.goToNextLevel()
+    }
+  }
+  canvasManager.addMenuButton {
+    new MenuButton {
+        val text = "previous level"
+        def isVisible = true
+        def isClickable = stateManager.canGoToPreviousLevel
+        def onClick() = stateManager.goToPreviousLevel()
     }
   }
   
@@ -154,6 +164,7 @@ class UserInputManager(val stateManager: GameStateManager) {
       val xDiff = Math.abs(origin.x - point.x) * ratio
       val yDiff = Math.abs(origin.y - point.y) * ratio
       if (xDiff >= touchMoveThreshold || yDiff >= touchMoveThreshold) {
+        canvasManager.clearMousePos()
         if (yDiff > xDiff) {
           clearTouchInfo()
           true

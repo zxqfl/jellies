@@ -9,9 +9,12 @@ import jellies.layout.Layout
 import jellies.game.metadata.FollowedBy
 import jellies.game.DirectionBlocked
 import jellies.game.JellyPermissionFailure
+import scala.collection.mutable
 
 class GameStateManager(val canvasManager: CanvasManager) {
   private var optModel: Option[Model] = None
+  private val previousLevelMap =
+      mutable.Map[LevelSpecification, LevelSpecification]()
   canvasManager.addRedrawListener(onRedraw)
   
   def setLevel(specification: LevelSpecification): Unit = {
@@ -30,6 +33,7 @@ class GameStateManager(val canvasManager: CanvasManager) {
         val optNext = model.metadata.find(_.isInstanceOf[FollowedBy])
         optNext match {
           case Some(FollowedBy(level)) => {
+            previousLevelMap(level) = model.levelSpecification
             setLevel(level)
             Right(Unit)
           }
@@ -42,6 +46,15 @@ class GameStateManager(val canvasManager: CanvasManager) {
     }
   }
   def canGoToNextLevel: Boolean = optModel.isDefined
+  
+  def canGoToPreviousLevel: Boolean = {
+    optModel.exists(x => previousLevelMap.contains(x.levelSpecification))
+  }
+  def goToPreviousLevel(): Unit = {
+    if (canGoToPreviousLevel) {
+      setLevel(previousLevelMap(optModel.get.levelSpecification))
+    }
+  }
   
   def clearModel() = {
     optModel = None
@@ -84,7 +97,7 @@ class GameStateManager(val canvasManager: CanvasManager) {
       onModelUpdate()
     }
   }
-  def canRestartLevel: Boolean = optModel.isDefined
+  def canRestartLevel: Boolean = canUndoMove
   
   def undoMove(): Unit = {
     if (canUndoMove) {

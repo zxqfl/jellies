@@ -87,7 +87,7 @@ class WrappedContext(private val c: CanvasRenderingContext2D) {
   }
   
   private def scaledForImpl(natural: Rect, fabricated: Rect,
-                            mul: Double, angle: Double,
+                            mul: Double, angle: Double, shouldClip: Boolean,
                             thunk: => Unit): Unit = {
     require(!natural.isDegenerate)
     require(!fabricated.isDegenerate)
@@ -103,18 +103,21 @@ class WrappedContext(private val c: CanvasRenderingContext2D) {
       scale(ratio, ratio * mul)
       rotate(angle)
       translate(-fabricated.centre)
-      clip(fabricated)
+      if (shouldClip) {
+        clip(fabricated)
+      }
       thunk
     }
   }
   
   def scaledFor(natural: Rect, fabricated: Rect,
-                angle: Double = 0)(thunk: => Unit) =
-    scaledForImpl(natural, fabricated, 1, angle, thunk)
+                angle: Double = 0, clip: Boolean = true)(thunk: => Unit) =
+    scaledForImpl(natural, fabricated, 1, angle, clip, thunk)
   
   def scaledForUpsideDown(natural: Rect, fabricated: Rect,
-                          angle: Double = 0)(thunk: => Unit) =
-    scaledForImpl(natural, fabricated, -1, angle, thunk)
+                          angle: Double = 0,
+                          clip: Boolean = true)(thunk: => Unit) =
+    scaledForImpl(natural, fabricated, -1, angle, clip, thunk)
   
   // This interface isn't great
   def drawText(text: String, where: Pt, height: Double,
