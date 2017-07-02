@@ -196,6 +196,21 @@ object Tutorial {
       .......
       """
   }
+  object Hook extends AbstractLevel with DownUp {
+    val asciiField = """
+      ....2..22
+      ....2..X2
+      ....2..XX
+      ....2..XX
+      ....2..XX
+      ..22...XX
+      ..1.1..XX
+      XXXXXX.XX
+      1.2.1..XX
+      .......XX
+      .......XX
+      """
+  }
   
   val levels: Seq[LevelSpecification] =
     LevelSequence(
@@ -210,5 +225,6 @@ object Tutorial {
       FlippedTandem,
       Inversion,
       Stars,
+      Hook,
       FourPart)
 }
