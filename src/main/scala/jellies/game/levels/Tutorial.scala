@@ -197,6 +197,7 @@ object Tutorial {
       .......
       .......
       """
+    override def metadata = Seq(NoAutoSolve)
   }
   object Hook extends AbstractLevel with DownUp {
     val asciiField = """
@@ -211,6 +212,14 @@ object Tutorial {
       1.2.1..XX
       .......XX
       .......XX
+      """
+    override def metadata = Seq(NoAutoSolve)
+  }
+  object Checkerboard extends AbstractLevel with DownRight {
+    val asciiField = """
+      ..2..
+      12121
+      21212
       """
   }
   
@@ -227,6 +236,7 @@ object Tutorial {
       FlippedTandem,
       Inversion,
       Stars,
+      Checkerboard,
       Hook,
       FourPart)
 }
