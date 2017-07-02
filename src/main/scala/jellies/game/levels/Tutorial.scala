@@ -36,9 +36,11 @@ object Tutorial {
       XX.11....XX
       """
     override def metadata = Seq(
-      InformationText("If you get stuck, press R to restart."),
-      InformationText("You can also press U to undo."),
-      InformationText("Pressing S will skip the level."))
+      InformationText("If you have a keyboard, you can use these shortcuts:"),
+      InformationText("Press R to restart."),
+      InformationText("Press U to undo."),
+      InformationText("Press Y to redo."),
+      InformationText("Press S to skip the level."))
   }
   object SuspensionInAir extends AbstractLevel with Down {
     val asciiField = """

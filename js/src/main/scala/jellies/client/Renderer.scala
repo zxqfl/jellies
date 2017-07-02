@@ -42,13 +42,13 @@ class Renderer(layouts: Seq[Layout], index: Int, lambda: Double) {
   val groundAlpha: Double = 0.7
   val airAlpha: Double = 0.05
   
-  val emptyColour = Colour("#ffffff")
-  val wallColour = Colour("#cccccc")
+  val emptyColour = Colour.White
+  val wallColour = Colour.fromHex("cccccc")
   val colourOf: Map[JellyColour, Colour] =
     Map(
-        MergeableColour(1) -> Colour("red"),
-        MergeableColour(2) -> Colour("green"),
-        MergeableColour(3) -> Colour("blue"))
+        MergeableColour(1) -> (Colour.Red darken 0.15),
+        MergeableColour(2) -> (Colour.Green lighten 0.2),
+        MergeableColour(3) -> Colour.Blue)
   
   def apply(
       c: WrappedContext,
@@ -83,7 +83,8 @@ class Renderer(layouts: Seq[Layout], index: Int, lambda: Double) {
               natural = currentArea,
               fabricated = layout.boundingBox.expand(.5),
               angleOf(layout.perspective)) {
-            renderList ++:= drawTiles(c, layout, mousePos)
+            renderList ++:= drawTiles(c, layout, mousePos, false)
+            drawTiles(c, layout, mousePos, true)
           }
         }
       }
@@ -132,7 +133,8 @@ class Renderer(layouts: Seq[Layout], index: Int, lambda: Double) {
   private def drawTiles(
       c: WrappedContext,
       layout: Layout,
-      mousePos: Pt): List[RenderInfo] = {
+      mousePos: Pt,
+      outlines: Boolean): List[RenderInfo] = {
         
     def getPt(j: layout.Jelly) = {
       layout.directions(index).get(j.refA) match {
@@ -171,7 +173,8 @@ class Renderer(layouts: Seq[Layout], index: Int, lambda: Double) {
     }
     for (w <- walls) {
       drawTile(c, w.location, layout, Pt(w.location),
-          wallColour, w.sameInfo, (groundAlpha, groundAlpha), (false, false))
+          wallColour, w.sameInfo, (groundAlpha, groundAlpha), (false, false),
+          outlines)
     }
     val infos = for {
       (refB, js) <- jellies.groupBy(_.refB)
@@ -210,7 +213,7 @@ class Renderer(layouts: Seq[Layout], index: Int, lambda: Double) {
             j.sameInfo,
             (getAlpha(j, isThisHighlightLeft),
              getAlpha(j, isThisHighlightRight)),
-            getForcedSide(j))
+            getForcedSide(j), outlines)
       }
     }
     infos.flatten.toList
@@ -252,7 +255,8 @@ class Renderer(layouts: Seq[Layout], index: Int, lambda: Double) {
       colour: Colour,
       sameInfo: SameInfo,
       innerAlpha: (Double, Double),
-      force: (Boolean, Boolean)): List[RenderInfo] = {
+      force: (Boolean, Boolean),
+      outlines: Boolean): List[RenderInfo] = {
     c.saved {
       c.translate(point)
       c.rotate(-angleOf(layout.perspective)) // this is sketchy
@@ -262,23 +266,21 @@ class Renderer(layouts: Seq[Layout], index: Int, lambda: Double) {
           c.transform(rect.topRight),
           c.transform(rect.bottomLeft),
           c.transform(rect.bottomRight))
-      val toDrawInner = rect.expand(0.001)
-      c.saved {
-        c.globalAlpha *= innerAlpha._1
-        c.drawRect(toDrawInner.leftHalf)
-        c.fillWith(colour)
-      }
-      c.saved {
-        c.globalAlpha *= innerAlpha._2
-        c.drawRect(toDrawInner.rightHalf)
-        c.fillWith(colour)
+      val toDrawInner = rect.expand(0.01)
+      if (!outlines) {
+        c.drawRect(toDrawInner.leftHalf expandRight 0.01)
+        c.fillWith(colour.lighten(1 - innerAlpha._1))
+        c.drawRect(toDrawInner.rightHalf expandLeft 0.01)
+        c.fillWith(colour.lighten(1 - innerAlpha._2))
       }
       val radius = 0.04
       def line(a: Pt, b: Pt, extendA: Boolean, extendB: Boolean) = {
-        val aa = if (extendA) a + (a-b).rescale(radius*2) else a
-        val bb = if (extendB) b + (b-a).rescale(radius*2) else b
-        c.drawLine(Line(aa, bb))
-        c.strokeWith(colour, radius * 2)
+        if (outlines) {
+          val aa = if (extendA) a + (a-b).rescale(radius*2) else a
+          val bb = if (extendB) b + (b-a).rescale(radius*2) else b
+          c.drawLine(Line(aa, bb))
+          c.strokeWith(colour, radius * 2)
+        }
       }
       val smallRect = rect.contract(radius)
       // Yeah, this makes no sense; the directions got confused at some point.
