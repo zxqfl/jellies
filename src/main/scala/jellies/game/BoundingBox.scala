@@ -7,10 +7,10 @@ final class BoundingBox private (
     val top: Int) {
   
   def this(locs: Location*) { this(
-    left   = locs.map(_.x).reduce(Math.min),
-    right  = locs.map(_.x).reduce(Math.max),
-    bottom = locs.map(_.y).reduce(Math.min),
-    top    = locs.map(_.y).reduce(Math.max))
+    left   = locs.iterator.map(_.x).reduce(Math.min),
+    right  = locs.iterator.map(_.x).reduce(Math.max),
+    bottom = locs.iterator.map(_.y).reduce(Math.min),
+    top    = locs.iterator.map(_.y).reduce(Math.max))
   }
   
   def expand(x: Int) = {

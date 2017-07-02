@@ -65,6 +65,7 @@ final case class Rect(topLeft: Pt, bottomRight: Pt) extends Transformable[Rect] 
   def centre: Pt = (topLeft + bottomRight) / 2
   
   def centreAtOrigin = this - centre
+  def topLeftAtOrigin = this - topLeft
       
   def + (p: Pt) = Rect(topLeft + p, bottomRight + p)
   def * (s: Double) = Rect(topLeft * s, bottomRight * s)
@@ -92,10 +93,10 @@ final case class Rect(topLeft: Pt, bottomRight: Pt) extends Transformable[Rect] 
 
 object Rect {
   def bound(points: Pt*): Rect = {
-    val left: Double   = points.map(_.x).reduce(_ min _)
-    val right: Double  = points.map(_.x).reduce(_ max _)
-    val bottom: Double = points.map(_.y).reduce(_ max _)
-    val top: Double    = points.map(_.y).reduce(_ min _)
+    val left: Double   = points.iterator.map(_.x).reduce(_ min _)
+    val right: Double  = points.iterator.map(_.x).reduce(_ max _)
+    val bottom: Double = points.iterator.map(_.y).reduce(_ max _)
+    val top: Double    = points.iterator.map(_.y).reduce(_ min _)
     Rect(Pt(left, top), Pt(right, bottom))
   }
 }

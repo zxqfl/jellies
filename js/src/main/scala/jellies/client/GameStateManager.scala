@@ -41,6 +41,7 @@ class GameStateManager(val canvasManager: CanvasManager) {
       }
     }
   }
+  def canGoToNextLevel: Boolean = optModel.isDefined
   
   def clearModel() = {
     optModel = None
@@ -77,20 +78,31 @@ class GameStateManager(val canvasManager: CanvasManager) {
   }
   
   def restartLevel(): Unit = {
-    if (optModel.isDefined) {
+    if (canRestartLevel) {
       canvasManager.cancelAnimation()
       optModel.get.restart()
       onModelUpdate()
     }
   }
+  def canRestartLevel: Boolean = optModel.isDefined
   
   def undoMove(): Unit = {
-    if (optModel.isDefined && optModel.get.canUndo) {
+    if (canUndoMove) {
       canvasManager.cancelAnimation()
       optModel.get.undo()
       onModelUpdate()      
     }
   }
+  def redoMove(): Unit = {
+    if (canRedoMove) {
+      canvasManager.cancelAnimation()
+      optModel.get.redo()
+      onModelUpdate()      
+    }
+  }
+  
+  def canUndoMove: Boolean = optModel.exists(_.canUndo)
+  def canRedoMove: Boolean = optModel.exists(_.canRedo)
   
   private def onModelUpdate(): Unit = {
     canvasManager.redraw()

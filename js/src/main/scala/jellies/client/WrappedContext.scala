@@ -12,6 +12,13 @@ class WrappedContext(private val c: CanvasRenderingContext2D) {
   def lineCap_= (x: String) = (c.lineCap = x)
   
   def transform(p: Pt): Pt = transformStack.head(p)
+  def transform(r: Rect): Rect = {
+    Rect.bound(
+        transform(r.topLeft),
+        transform(r.topRight),
+        transform(r.bottomLeft),
+        transform(r.bottomRight))
+  }
   
   def rectangle(r: Rect) = c.rect(r.x, r.y, r.width, r.height)
   def drawRect(r: Rect) = {
@@ -109,9 +116,10 @@ class WrappedContext(private val c: CanvasRenderingContext2D) {
                           angle: Double = 0)(thunk: => Unit) =
     scaledForImpl(natural, fabricated, -1, angle, thunk)
   
+  // This interface isn't great
   def drawText(text: String, where: Pt, height: Double,
                align: TextAlign = AlignCentre,
-               f: Double => Unit = (x => Unit)): Unit = {
+               f: Rect => Colour = (_ => Colour.Black)): Unit = {
     saved {
       c.textAlign = align match {
         case AlignLeft => "left"
@@ -123,8 +131,14 @@ class WrappedContext(private val c: CanvasRenderingContext2D) {
       translate(where)
       scale(height / 10, height / 10)
       val metrics = c.measureText(text)
-      f(metrics.width)
-      c.fillStyle = "black"
+      var rect = Rect(Pt(0, -4.4), Pt(metrics.width, 4.6))
+      align match {
+        case AlignLeft =>
+        case AlignCentre => rect -= Pt(rect.width / 2, 0)
+        case AlignRight => rect -= Pt(rect.width, 0)
+      }
+      val colour = f(rect)
+      c.fillStyle = colour.representation
       c.fillText(text, 0, 4.1)
     }
   }

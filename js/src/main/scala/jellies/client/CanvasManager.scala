@@ -9,13 +9,14 @@ import jellies.game.MoveResult
 class CanvasManager(val canvas: dom.html.Canvas) {
   private var drawnModel: Seq[layout.ModelView] = Seq()
   private var oldDimensions: Option[(Int, Int, Int, Int)] = None
-  private var infoFromLastRender: Seq[RenderInfo] = Seq()
+  private var infoFromLastRender: Seq[ActionRegion] = Seq()
   private var devicePixelRatio: Option[Double] = None
   private var optAnimation: Option[MoveAnimation] = None
   private var redrawListeners: Seq[() => Unit] = Seq()
   private var fadingMessageInfo: Option[(String, Seconds)] = None
   private var ongoingAnimationRequests: List[Int] = Nil
   private var mousePos: Pt = Pt(-1e9, -1e9)
+  private var menuButtons: Seq[MenuButton] = Seq()
   
   checkDimensions()
   
@@ -24,8 +25,12 @@ class CanvasManager(val canvas: dom.html.Canvas) {
     redraw()
   }
   
-  def addRedrawListener(fn: () => Unit) = {
+  def addRedrawListener(fn: () => Unit): Unit = {
     redrawListeners :+= fn
+  }
+  
+  def addMenuButton(b: MenuButton): Unit = {
+    menuButtons :+= b
   }
   
   def requestRedraw(): Unit = {
@@ -67,7 +72,8 @@ class CanvasManager(val canvas: dom.html.Canvas) {
         Rect(Pt(0, 0), Pt(canvas.width, canvas.height)),
         metadata,
         getFadingMessage,
-        mousePos)
+        mousePos,
+        menuButtons)
     infoFromLastRender = results
     
     for (x <- redrawListeners) x()
@@ -123,7 +129,7 @@ class CanvasManager(val canvas: dom.html.Canvas) {
     p * getDevicePixelRatio
   }
   
-  def interpret(pParam: Pt): Option[RenderInfo] = {
+  def interpret(pParam: Pt): Option[ActionRegion] = {
     val p = transformByRatio(pParam)
     infoFromLastRender.find(_.region contains p)
   }

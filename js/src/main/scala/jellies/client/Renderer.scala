@@ -15,11 +15,18 @@ import jellies.game.LevelMetadata
 import jellies.game.metadata.InformationText
 import jellies.game.BoundingBox
 
+sealed trait ActionRegion {
+  def region: Rect
+}
+
 final case class RenderInfo(
     region: Rect,
     location: Location,
     originator: Layout,
-    isRightSide: Boolean)
+    isRightSide: Boolean) extends ActionRegion
+final case class ArbitraryActionInfo(
+    region: Rect,
+    onClick: () => Unit) extends ActionRegion
 
 final case class PartialRenderInfo(region: Rect, isRightSide: Boolean)
     
@@ -55,8 +62,9 @@ class Renderer(layouts: Seq[Layout], index: Int, lambda: Double) {
       visibleArea: Rect,
       metadata: Seq[LevelMetadata],
       fadingMessage: FadingMessage,
-      mousePos: Pt): Seq[RenderInfo] = {
-    var renderList: List[RenderInfo] = List()
+      mousePos: Pt,
+      menuButtons: Seq[MenuButton]): Seq[ActionRegion] = {
+    var renderList: List[ActionRegion] = List()
     c.saved {
       c.lineCap = "square"
       c.clip(visibleArea)
@@ -64,21 +72,25 @@ class Renderer(layouts: Seq[Layout], index: Int, lambda: Double) {
       c.drawRect(visibleArea)
       c.fillWith(emptyColour)
       
+      val menuWidth = visibleArea.width * 0.15
+      val menuRegion = visibleArea.withWidthLeft(menuWidth)
+      val gameRegion = visibleArea.withWidthRight(visibleArea.width - menuWidth)
+      
       if (layouts.isEmpty) {
         c.scaledFor(
-            natural = visibleArea,
+            natural = gameRegion,
             fabricated = Rect(Pt(0, 0), Pt(1, 1))) {
           c.drawText("nothing to draw :'(", Pt(0.5, 0.5), 0.1)            
         }
       } else {
-        val l = visibleArea.topLeft.x
-        val r = visibleArea.bottomRight.x
+        val l = gameRegion.topLeft.x
+        val r = gameRegion.bottomRight.x
         for ((layout, index) <- layouts.zipWithIndex) {
           val a = l + (r - l) * index / layouts.size
           val b = l + (r - l) * (index + 1) / layouts.size
           val currentArea = Rect(
-              Pt(a, visibleArea.topLeft.y),
-              Pt(b, visibleArea.bottomRight.y)).contract(100)
+              Pt(a, gameRegion.topLeft.y),
+              Pt(b, gameRegion.bottomRight.y)).contract(100)
           c.scaledForUpsideDown(
               natural = currentArea,
               fabricated = layout.boundingBox.expand(.5),
@@ -90,9 +102,9 @@ class Renderer(layouts: Seq[Layout], index: Int, lambda: Double) {
       }
       
       c.scaledFor(
-          natural = visibleArea,
+          natural = gameRegion,
           fabricated = Rect(
-              Pt(1 - visibleArea.width / visibleArea.height, 0),
+              Pt(1 - gameRegion.width / gameRegion.height, 0),
               Pt(1, 1))) {
         val textHeight = 0.04
         val margin = 0.02
@@ -108,19 +120,44 @@ class Renderer(layouts: Seq[Layout], index: Int, lambda: Double) {
         }
       }
       c.scaledFor(
-          natural = visibleArea,
-          fabricated = visibleArea.centreAtOrigin / visibleArea.height) {
+          natural = gameRegion,
+          fabricated = gameRegion.centreAtOrigin / gameRegion.height) {
         c.globalAlpha *= fadingMessage.percentLeft
         val textHeight = 0.07
         c.drawText(fadingMessage.message, Pt(0, 0.15), textHeight, AlignCentre,
-            width => {
+            rect => {
               c.saved {
                 c.globalAlpha *= 0.5
-                val rect = Rect(Pt(0, 0), Pt(width, 14)).centreAtOrigin
-                c.drawRect(rect)
+                c.drawRect(rect expand 1)
                 c.fillWith("white")
+                Colour.Black
               }
             })
+      }
+      val menuDrawRegion = menuRegion.topLeftAtOrigin / menuRegion.height
+      c.scaledFor(
+          natural = menuRegion,
+          fabricated = menuDrawRegion) {
+        val textHeight = 0.04
+        var menuList: List[ArbitraryActionInfo] = Nil
+        for ((button, index) <- menuButtons.filter(_.isVisible).zipWithIndex) {
+          val x = menuDrawRegion.width * 0.1
+          val y = (textHeight * 1.5) * index + 0.04
+          c.saved {
+            c.drawText(button.text, Pt(x, y), textHeight, AlignLeft, {rect =>
+              val clickRegion = c.transform(rect expand 1)
+              menuList :+= ArbitraryActionInfo(clickRegion, button.onClick _)
+              if (!button.isClickable) {
+                Colour.Black lighten 0.5
+              } else if (clickRegion contains mousePos) {
+                Colour.Orange darken 0.2
+              } else {
+                Colour.Black
+              }
+            })
+          }
+        }
+        renderList ++= menuList
       }
     }
     renderList

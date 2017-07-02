@@ -25,7 +25,43 @@ class UserInputManager(val stateManager: GameStateManager) {
   private var keyListeners: Map[Int, Seq[() => Unit]] = Map()
   ignoreError(addKeyListener('r', () => stateManager.restartLevel()))
   ignoreError(addKeyListener('u', () => stateManager.undoMove()))
+  ignoreError(addKeyListener('y', () => stateManager.redoMove()))
   ignoreError(addKeyListener('s', () => stateManager.goToNextLevel()))
+  
+  canvasManager.addMenuButton {
+    new MenuButton {
+        val text = "undo"
+        def isVisible = true
+        def isClickable = stateManager.canUndoMove
+        def onClick() = stateManager.undoMove()
+    }
+  }
+  canvasManager.addMenuButton {
+    new MenuButton {
+        val text = "redo"
+        def isVisible = true
+        def isClickable = stateManager.canRedoMove
+        def onClick() = stateManager.redoMove()
+    }
+  }
+  canvasManager.addMenuButton {
+    new MenuButton {
+        val text = "restart"
+        def isVisible = true
+        def isClickable = stateManager.canRestartLevel
+        def onClick() = stateManager.restartLevel()
+    }
+  }
+  canvasManager.addMenuButton {
+    new MenuButton {
+        val text = "next level"
+        def isVisible = true
+        def isClickable = stateManager.canGoToNextLevel
+        def onClick() = stateManager.goToNextLevel()
+    }
+  }
+  
+  canvasManager.redraw()
   
   private var touchInfo: Option[Pt] = None
   private val touchMoveThreshold: Double = 170
@@ -38,17 +74,24 @@ class UserInputManager(val stateManager: GameStateManager) {
   
   def onMouseDown(e: MouseEvent): Boolean = {
     if (e.button == leftMouseButton) {
-      for (info <- canvasManager.interpret(e)) {
-        val dir = {
-          if (info.isRightSide)
-            info.originator.perspective.right
-          else
-            info.originator.perspective.left
+      for (action <- canvasManager.interpret(e)) {
+        action match {
+          case info: RenderInfo => {
+            val dir = {
+              if (info.isRightSide)
+                info.originator.perspective.right
+              else
+                info.originator.perspective.left
+            }
+            stateManager.submitMoveAttempt(
+                info.originator,
+                info.location,
+                dir)
+          }
+          case action: ArbitraryActionInfo => {
+            action.onClick()
+          }
         }
-        stateManager.submitMoveAttempt(
-            info.originator,
-            info.location,
-            dir)
       }
       false
     } else {
@@ -115,18 +158,23 @@ class UserInputManager(val stateManager: GameStateManager) {
           clearTouchInfo()
           true
         } else {
-          for (info <- canvasManager.interpret(origin)) {
-            val dir = {
-              if (point.x < origin.x) {
-                info.originator.perspective.left
-              } else {
-                info.originator.perspective.right
+          for (action <- canvasManager.interpret(origin)) {
+            action match {
+              case info: RenderInfo => {
+                val dir = {
+                  if (point.x < origin.x) {
+                    info.originator.perspective.left
+                  } else {
+                    info.originator.perspective.right
+                  }
+                }
+                stateManager.submitMoveAttempt(
+                    info.originator,
+                    info.location,
+                    dir)
               }
+              case _ =>
             }
-            stateManager.submitMoveAttempt(
-                info.originator,
-                info.location,
-                dir)
           }
           clearTouchInfo()
           false
