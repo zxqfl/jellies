@@ -206,13 +206,57 @@ object Tutorial {
       .....
       .....
       """
-//    override def metadata = Seq(NoAutoSolve)
   }
   object Checkerboard extends AbstractLevel with DownRight {
     val asciiField = """
       ..2..
       12121
       21212
+      """
+  }
+  object AnotherLevel extends AbstractLevel with DownRight {
+    val asciiField = """
+      ...122
+      2221..
+      ..1222
+      221..1
+      .....1
+      """
+  }
+  object YetAnotherLevel extends AbstractLevel with DownRight {
+    val asciiField = """
+      .1212.
+      .2121.
+      1.21.2
+      .2..1.
+      2....1
+      """
+  }
+  object YetYetAnotherLevel extends AbstractLevel with DownRight {
+    val asciiField = """
+      21212
+      1...1
+      2...2
+      1...1
+      21212
+      """
+  }
+  object Pit extends AbstractLevel with DownRight {
+    val asciiField = """
+     1X.......
+     11...2.21
+     XX...XXXX
+     XX...XXXX
+     XX..2XXXX
+      """
+  }
+  object Corners extends AbstractLevel with DownRight {
+    val asciiField = """
+      1...1
+      ...X.
+      ...2.
+      .X2..
+      1...2
       """
   }
   
@@ -227,8 +271,10 @@ object Tutorial {
       Halves,
       SecondTandem,
       FlippedTandem,
+      Corners,
       Inversion,
       Stars,
-      Checkerboard,
-      Hook)
+      Pit,
+      Hook,
+      Checkerboard)
 }
