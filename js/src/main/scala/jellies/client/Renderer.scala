@@ -55,7 +55,7 @@ class Renderer(layouts: Seq[Layout], index: Int, lambda: Double) {
     Map(
         MergeableColour(1) -> (Colour.Red darken 0.15),
         MergeableColour(2) -> (Colour.Green lighten 0.2),
-        MergeableColour(3) -> Colour.Blue)
+        MergeableColour(3) -> (Colour.Blue lighten 0.15))
   
   def apply(
       c: WrappedContext,

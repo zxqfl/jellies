@@ -1,7 +1,7 @@
 package jellies.game.solver
 
 import org.scalatest._
-import jellies.game.levels.Tutorial
+import jellies.game.levels.Levels
 import jellies.game.levels.AbstractLevel
 import jellies.game.levels.Down
 
@@ -20,7 +20,7 @@ private class BasicSolverTest extends FunSuite with Matchers {
   }
     
   test("solve first tutorial level") {
-    val solver = new Solver(Tutorial.MovementLevel.spec)
+    val solver = new Solver(Levels.MovementLevel.spec)
     solver.result shouldBe None
     val result = solver.solve
     result shouldBe a [solver.Solution]

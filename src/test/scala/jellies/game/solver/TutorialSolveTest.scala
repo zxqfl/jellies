@@ -1,11 +1,11 @@
 package jellies.game.solver
 
 import org.scalatest._
-import jellies.game.levels.Tutorial
+import jellies.game.levels.Levels
 import jellies.game.metadata.NoAutoSolve
 
 private class TutorialSolveTest extends FunSuite with Matchers {
-  for ((level, index) <- Tutorial.levels.zipWithIndex) {
+  for ((level, index) <- Levels.levels.zipWithIndex) {
     test(s"test that tutorial level ${index + 1} is solvable") {
       if (level.metadata.contains(NoAutoSolve)) {
         info("skipped")

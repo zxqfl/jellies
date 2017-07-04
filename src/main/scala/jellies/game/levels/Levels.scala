@@ -5,7 +5,25 @@ import jellies.game.LevelSpecification
 import AbstractLevel._
 import jellies.game.metadata.NoAutoSolve
 
-object Tutorial {
+object Levels {
+  val levels: Seq[LevelSpecification] =
+    LevelSequence(
+      MovementLevel,
+      SimplePuzzleLevel,
+      SuspensionInAir,
+      GravityPropagation,
+      Support,
+      FirstTandem,
+      Halves,
+      SecondTandem,
+      FlippedTandem,
+      Inversion,
+      Corners,
+      Stars,
+      Pit,
+      Hook,
+      Blue)
+      
   object MovementLevel extends AbstractLevel with Down {
     val asciiField = """
       ...........
@@ -259,22 +277,18 @@ object Tutorial {
       1...2
       """
   }
-  
-  val levels: Seq[LevelSpecification] =
-    LevelSequence(
-      MovementLevel,
-      SimplePuzzleLevel,
-      SuspensionInAir,
-      GravityPropagation,
-      Support,
-      FirstTandem,
-      Halves,
-      SecondTandem,
-      FlippedTandem,
-      Corners,
-      Inversion,
-      Stars,
-      Pit,
-      Hook,
-      Checkerboard)
+  object Blue extends AbstractLevel with DownRight {
+    val asciiField = """
+      1.......
+      ....X.X.
+      ..X.....
+      ........
+      .X..X..2
+      .....X.3
+      .X.....1
+      ....2313
+      """
+    override def metadata = Seq(
+        InformationText("Blue jellies are just like red or green jellies."))
+  }
 }

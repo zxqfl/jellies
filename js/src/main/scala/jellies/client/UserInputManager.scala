@@ -74,7 +74,7 @@ class UserInputManager(val stateManager: GameStateManager) {
   canvasManager.redraw()
   
   private var touchInfo: Option[Pt] = None
-  private val touchMoveThreshold: Double = 170
+  private val touchMoveThreshold: Double = 110
   
   private implicit def eventToPt(e: MouseEvent) = Pt(e.clientX, e.clientY)
   private implicit def eventToPt(e: Touch) = Pt(e.clientX, e.clientY)

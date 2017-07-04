@@ -5,7 +5,7 @@ import org.scalajs.dom
 import jellies.game
 import jellies.layout
 import jellies.game.LevelSpecification
-import jellies.game.levels.Tutorial
+import jellies.game.levels.Levels
 
 object EntryPoint extends JSApp {
   def main(): Unit = {
@@ -23,7 +23,7 @@ object EntryPoint extends JSApp {
     
     val canvasManager = new CanvasManager(canvas)
     val stateManager = new GameStateManager(canvasManager)
-    stateManager.setLevel(Tutorial.levels(0))
+    stateManager.setLevel(Levels.levels(0))
     val inputManager = new UserInputManager(stateManager)
   }
 }
