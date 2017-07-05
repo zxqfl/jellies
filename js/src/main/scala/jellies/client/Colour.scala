@@ -29,6 +29,7 @@ object Colour {
   val Red = Colour(1, 0, 0)
   val Green = Colour(0, 0.5, 0) // matches CSS "green"
   val Blue = Colour(0, 0, 1)
+  val Cyan = Colour(0, 1, 1)
   val Orange = fromHex("ffa500")
   
   def fromHex(s: String): Colour = {

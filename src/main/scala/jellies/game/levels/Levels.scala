@@ -22,6 +22,7 @@ object Levels {
       Stars,
       Pit,
       Hook,
+      Ferry,
       Blue)
       
   object MovementLevel extends AbstractLevel with Down {
@@ -287,6 +288,18 @@ object Levels {
       .....X.3
       .X.....1
       ....2313
+      """
+    override def metadata = Seq(
+        NoAutoSolve)
+  }
+  object Ferry extends AbstractLevel with DownUp {
+    val asciiField = """
+      XX..X..XXXXXX
+      1X..X..XXXXXX
+      1.......123XX
+      1.......213XX
+      1X..X..XXXXXX
+      XX..X..XXXXXX
       """
     override def metadata = Seq(
         InformationText("Blue jellies are just like red or green jellies."))

@@ -14,7 +14,7 @@ import scala.collection.mutable
 class GameStateManager(val canvasManager: CanvasManager) {
   private var optModel: Option[Model] = None
   private val previousLevelMap =
-      mutable.Map[LevelSpecification, LevelSpecification]()
+      mutable.Map[Option[LevelSpecification], LevelSpecification]()
   canvasManager.addRedrawListener(onRedraw)
   
   def setLevel(specification: LevelSpecification): Unit = {
@@ -33,11 +33,12 @@ class GameStateManager(val canvasManager: CanvasManager) {
         val optNext = model.metadata.find(_.isInstanceOf[FollowedBy])
         optNext match {
           case Some(FollowedBy(level)) => {
-            previousLevelMap(level) = model.levelSpecification
+            previousLevelMap(Some(level)) = model.levelSpecification
             setLevel(level)
             Right(Unit)
           }
           case _ => {
+            previousLevelMap(None) = model.levelSpecification
             clearModel()
             Left(Unit)
           }
@@ -47,12 +48,14 @@ class GameStateManager(val canvasManager: CanvasManager) {
   }
   def canGoToNextLevel: Boolean = optModel.isDefined
   
+  private def optLevel = optModel.map(_.levelSpecification)
+  
   def canGoToPreviousLevel: Boolean = {
-    optModel.exists(x => previousLevelMap.contains(x.levelSpecification))
+    previousLevelMap contains optLevel
   }
   def goToPreviousLevel(): Unit = {
     if (canGoToPreviousLevel) {
-      setLevel(previousLevelMap(optModel.get.levelSpecification))
+      setLevel(previousLevelMap(optLevel))
     }
   }
   
