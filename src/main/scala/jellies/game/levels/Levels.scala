@@ -12,16 +12,19 @@ object Levels {
       SimplePuzzleLevel,
       SuspensionInAir,
       GravityPropagation,
+      GravityTutorial,
       Support,
       FirstTandem,
-      Halves,
+      SimpleTandem,
       SecondTandem,
       FlippedTandem,
+      Halves,
       Inversion,
       Corners,
       Stars,
       Pit,
       Hook,
+      NewFour,
       Ferry,
       Blue)
       
@@ -108,10 +111,15 @@ object Levels {
       InformationText("wouldn't move if gravity were applied to it."),
       InformationText("So the red jelly in the middle is not connected to the"),
       InformationText("ground because it's only supported by other jellies."))
-      
-//      InformationText("Remember: if a jelly is on the"),
-//      InformationText("ground before you move, gravity"),
-//      InformationText("will apply to it as part of your move."))
+  }
+  object SimpleTandem extends AbstractLevel with DownRight {
+    val asciiField = """
+      1...
+      .X..
+      ...2
+      ...1
+      .212
+      """
   }
   object FirstTandem extends AbstractLevel with DownRight {
     val asciiField = """
@@ -129,28 +137,28 @@ object Levels {
   }
   object SecondTandem extends AbstractLevel with DownRight {
     val asciiField = """
-      .....1..
-      .....X..
-      ........
-      .....1..
-      2X..2...
-      ........
-      XXXX.X..
-      XXXX2XX.
-      XXX222X.
+      ....1..
+      ....X..
+      .......
+      ....1..
+      2X.2...
+      .......
+      XXX.X..
+      XXX2XX.
+      XX222X.
       """
   }
   object FlippedTandem extends AbstractLevel with DownLeft {
     val asciiField = """
-      .....1..
-      .....X..
-      ........
-      .....1..
-      2X..2...
-      ........
-      XXXX.X..
-      XXXX2XX.
-      XXX222X.
+      ....1..
+      ....X..
+      .......
+      ....1..
+      2X.2...
+      .......
+      XXX.X..
+      XXX2XX.
+      XX222X.
       """
   }
   object Inversion extends AbstractLevel with DownUp {
@@ -203,15 +211,15 @@ object Levels {
   }
   object Halves extends AbstractLevel with DownUp {
     val asciiField = """
-      .......
-      .......
-      .......
-      21...12
-      XXX.XXX
-      21...12
-      .......
-      .......
-      .......
+      .....
+      .....
+      .....
+      21.12
+      XX.XX
+      21.12
+      .....
+      .....
+      .....
       """
     override def metadata = Seq(NoAutoSolve)
   }
@@ -303,5 +311,26 @@ object Levels {
       """
     override def metadata = Seq(
         InformationText("Blue jellies are just like red or green jellies."))
+  }
+  object GravityTutorial extends AbstractLevel with Down {
+    val asciiField = """
+      XX1X1XX2
+      22.....2
+      2.....22
+      XX.XXXXX
+      XX1XXXXX
+      """
+  }
+  object NewFour extends AbstractLevel with DownRight {
+    val asciiField = """
+      ...X...
+      .2...1.
+      ..1X2..
+      X.XXX.X
+      ..2X1..
+      .1...2.
+      ...X...
+      """
+    override def metadata = Seq(NoAutoSolve)
   }
 }

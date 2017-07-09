@@ -134,6 +134,7 @@ class WrappedContext(private val c: CanvasRenderingContext2D) {
       translate(where)
       scale(height / 10, height / 10)
       val metrics = c.measureText(text)
+      // Obtained from a reputable magic number vendor
       var rect = Rect(Pt(0, -4.4), Pt(metrics.width, 4.6))
       align match {
         case AlignLeft =>
