@@ -21,10 +21,11 @@ object Levels {
       Halves,
       Inversion,
       Corners,
+      NewFour,
+      Bridge,
       Stars,
       Pit,
       Hook,
-      NewFour,
       Ferry,
       Blue)
       
@@ -99,7 +100,6 @@ object Levels {
       X...11
       X...22
       X...XX
-      X....X
       X2111X
       X.2.2X
       X....X
@@ -332,5 +332,16 @@ object Levels {
       ...X...
       """
     override def metadata = Seq(NoAutoSolve)
+  }
+  object Bridge extends AbstractLevel with DownUp {
+    val asciiField = """
+      XXXX....XX
+      XXXX....XX
+      1..1....X1
+      .12......1
+      2..2....X1
+      XXXX....XX
+      XXXX....XX
+      """
   }
 }
